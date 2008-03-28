@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<names xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/names src/names.xsd ">
+	<name>Basic</name>
+	<name>Adariański</name>
+	<name>Aqualishański</name>
+	<name>Arcoński</name>
+	<name>Barabelski</name>
+	<name>Bithański</name>
+	<name>Bothański</name>
+	<name>Cereański</name>
+	<name>Chadra-fański</name>
+	<name>Devaroński</name>
+	<name>Defelski</name>
+	<name>Durosjański</name>
+	<name>Gamorreański</name>
+	<name>Antariański</name>
+	<name>Grański</name>
+	<name>Huttyjski</name>
+	<name>Iktotchiański</name>
+	<name>Ithoriański</name>
+	<name>Kel Doriański</name>
+	<name>Mon Calamariański</name>
+	<name>Honoghrański</name>
+	<name>Quarreński</name>
+	<name>Rodiański</name>
+	<name>Sullustiański</name>
+	<name>Dosh</name>
+	<name>Ryliański</name>
+	<name>Verpiński</name>
+	<name>Shyriiwook</name>
+	<name>Lekku</name>
+	<name>Verpidio</name>
+	<name>Binarny</name>
+	<name>Gungański</name>
+	<name>Jawów</name>
+	<name>Ewoków</name>
+	<name>Mando'a</name>
+	<name>Olys Corellisi</name>
+</names>

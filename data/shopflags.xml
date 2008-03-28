@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<flags xmlns="http://swmud.pl/ns/swaedit/flags"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/flags src/flags.xsd ">
+	<flag>
+		<name>rawcost</name>
+		<value>1</value>
+	</flag>
+</flags>

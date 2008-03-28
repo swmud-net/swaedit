@@ -1,0 +1,1284 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<itemtypes xmlns="http://swmud.pl/ns/swaedit/itemtypes"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/itemtypes src/itemtypes.xsd ">
+
+
+	<itemtype>
+		<name>none</name>
+		<value>0</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>light</name>
+		<value>1</value>
+		<values>
+			<value>
+				<no>2</no>
+				<name>light</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>weapon</name>
+		<value>5</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>condition</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>min damage</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>max damage</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>weapon type</name>
+				<subvalues>
+					<subvalue>
+						<name>none</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>vibro axe</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>vibro blade</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>lightsaber</name>
+						<value>3</value>
+					</subvalue>
+					<subvalue>
+						<name>whip</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>claw</name>
+						<value>5</value>
+					</subvalue>
+					<subvalue>
+						<name>blaster</name>
+						<value>6</value>
+					</subvalue>
+					<subvalue>
+						<name>bludgeon</name>
+						<value>8</value>
+					</subvalue>
+					<subvalue>
+						<name>bowcaster</name>
+						<value>9</value>
+					</subvalue>
+					<subvalue>
+						<name>force pike</name>
+						<value>11</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>4</no>
+				<name>charges</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>5</no>
+				<name>max charges</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+	<itemtype>
+		<name>treasure</name>
+		<value>8</value>
+		<values/>
+	</itemtype>
+
+
+
+	<itemtype>
+		<name>armor</name>
+		<value>9</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>condition</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>ac</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>potion</name>
+		<value>10</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>slevel</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>spell1</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>spell2</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>spell3</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>computer</name>
+		<value>11</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>trash</name>
+		<value>13</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>container</name>
+		<value>15</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>capacity</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>container flags</name>
+				<subvalues type="flags">
+					<subvalue>
+						<name>closeable</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>pickproof</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>closed</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>locked</name>
+						<value>8</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>2</no>
+				<name>key</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>drink container</name>
+		<value>17</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>liquid total</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>liquid left</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>liquid type</name>
+				<subvalues>
+					<subvalue>
+						<name>water</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>beer</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>wine</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>ale</name>
+						<value>3</value>
+					</subvalue>
+					<subvalue>
+						<name>dark-ale</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>whisky</name>
+						<value>5</value>
+					</subvalue>
+					<subvalue>
+						<name>lemonade</name>
+						<value>6</value>
+					</subvalue>
+					<subvalue>
+						<name>firebreather</name>
+						<value>7</value>
+					</subvalue>
+					<subvalue>
+						<name>local-speciality</name>
+						<value>8</value>
+					</subvalue>
+					<subvalue>
+						<name>slime-mold-juice</name>
+						<value>9</value>
+					</subvalue>
+					<subvalue>
+						<name>milk</name>
+						<value>10</value>
+					</subvalue>
+					<subvalue>
+						<name>tea</name>
+						<value>11</value>
+					</subvalue>
+					<subvalue>
+						<name>coffe</name>
+						<value>12</value>
+					</subvalue>
+					<subvalue>
+						<name>blood</name>
+						<value>13</value>
+					</subvalue>
+					<subvalue>
+						<name>salt-water</name>
+						<value>14</value>
+					</subvalue>
+					<subvalue>
+						<name>cola</name>
+						<value>15</value>
+					</subvalue>
+					<subvalue>
+						<name>ponch</name>
+						<value>16</value>
+					</subvalue>
+					<subvalue>
+						<name>grog</name>
+						<value>17</value>
+					</subvalue>
+					<subvalue>
+						<name>shake</name>
+						<value>18</value>
+					</subvalue>
+					<subvalue>
+						<name>drink</name>
+						<value>19</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>3</no>
+				<name>poisoned</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>key</name>
+		<value>18</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>food</name>
+		<value>19</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>food hours</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>poisoned</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>money</name>
+		<value>20</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>credits</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>corpse NPC</name>
+		<value>23</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>corpse PC</name>
+		<value>24</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>fountain</name>
+		<value>25</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>liquid total</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>liquid left</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>liquid type</name>
+				<subvalues>
+					<subvalue>
+						<name>water</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>beer</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>wine</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>ale</name>
+						<value>3</value>
+					</subvalue>
+					<subvalue>
+						<name>dark-ale</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>whisky</name>
+						<value>5</value>
+					</subvalue>
+					<subvalue>
+						<name>lemonade</name>
+						<value>6</value>
+					</subvalue>
+					<subvalue>
+						<name>firebreather</name>
+						<value>7</value>
+					</subvalue>
+					<subvalue>
+						<name>local-speciality</name>
+						<value>8</value>
+					</subvalue>
+					<subvalue>
+						<name>slime-mold-juice</name>
+						<value>9</value>
+					</subvalue>
+					<subvalue>
+						<name>milk</name>
+						<value>10</value>
+					</subvalue>
+					<subvalue>
+						<name>tea</name>
+						<value>11</value>
+					</subvalue>
+					<subvalue>
+						<name>coffe</name>
+						<value>12</value>
+					</subvalue>
+					<subvalue>
+						<name>blood</name>
+						<value>13</value>
+					</subvalue>
+					<subvalue>
+						<name>salt-water</name>
+						<value>14</value>
+					</subvalue>
+					<subvalue>
+						<name>cola</name>
+						<value>15</value>
+					</subvalue>
+					<subvalue>
+						<name>ponch</name>
+						<value>16</value>
+					</subvalue>
+					<subvalue>
+						<name>grog</name>
+						<value>17</value>
+					</subvalue>
+					<subvalue>
+						<name>shake</name>
+						<value>18</value>
+					</subvalue>
+					<subvalue>
+						<name>drink</name>
+						<value>19</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>3</no>
+				<name>poisoned</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>key</name>
+		<value>18</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>pill</name>
+		<value>26</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>slevel</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>spell1</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>spell2</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>spell3</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>scraps</name>
+		<value>29</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>pipe</name>
+		<value>30</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>herb container</name>
+		<value>31</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>herb</name>
+		<value>32</value>
+		<values/>
+	</itemtype>
+
+
+	<itemtype>
+		<name>switch</name>
+		<value>36</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>tflags</name>
+				<subvalues type="flags">
+					<subvalue>
+						<name>closeable</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>pickproof</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>closed</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>locked</name>
+						<value>8</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+	<itemtype>
+		<name>lever</name>
+		<value>37</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>tflags</name>
+				<subvalues type="flags">
+					<subvalue>
+						<name>closeable</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>pickproof</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>closed</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>locked</name>
+						<value>8</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>pullchain</name>
+		<value>38</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>button</name>
+		<value>39</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>tflags</name>
+				<subvalues type="flags">
+					<subvalue>
+						<name>closeable</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>pickproof</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>closed</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>locked</name>
+						<value>8</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>trap</name>
+		<value>44</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>portal</name>
+		<value>46</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>paper</name>
+		<value>47</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>ammo</name>
+		<value>57</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>charges</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>shovel</name>
+		<value>59</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>salve</name>
+		<value>60</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>slevel</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>maxdoses</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>doses</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>delay</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>4</no>
+				<name>spell1</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>5</no>
+				<name>spell2</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>rawspice</name>
+		<value>61</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>spice type</name>
+				<subvalues>
+					<subvalue>
+						<name>glitterstim</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>carsanum</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>ryll</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>andris</name>
+						<value>3</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>1</no>
+				<name>grade</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>lens</name>
+		<value>62</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>crystal</name>
+		<value>63</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>gem type</name>
+				<subvalues>
+					<subvalue>
+						<name>non adegen</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>kathracite</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>relacite</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>danite</name>
+						<value>3</value>
+					</subvalue>
+					<subvalue>
+						<name>mephite</name>
+						<value>4</value>
+					</subvalue>
+					<subvalue>
+						<name>ponite</name>
+						<value>5</value>
+					</subvalue>
+					<subvalue>
+						<name>illum</name>
+						<value>6</value>
+					</subvalue>
+					<subvalue>
+						<name>corusca</name>
+						<value>7</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>duraplast</name>
+		<value>64</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>battery</name>
+		<value>65</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>charges</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>toolkit</name>
+		<value>66</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>durasteel</name>
+		<value>67</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>oven</name>
+		<value>68</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>mirror</name>
+		<value>69</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>circuit</name>
+		<value>70</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>superconductor</name>
+		<value>71</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>comlink</name>
+		<value>72</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>medpac</name>
+		<value>73</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>fabric</name>
+		<value>74</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>rare metal</name>
+		<value>75</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>thread</name>
+		<value>77</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>spice</name>
+		<value>78</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>spice type</name>
+				<subvalues>
+					<subvalue>
+						<name>glitterstim</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>carsanum</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>ryll</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>andris</name>
+						<value>3</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>1</no>
+				<name>grade</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>smut</name>
+		<value>79</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>device</name>
+		<value>80</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>slevel</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>max charges</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>charges</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>spell</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>shipmodule</name>
+		<value>81</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>type</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>value</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>size</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>4</no>
+				<name>status</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>5</no>
+				<name>crs</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>grenade</name>
+		<value>82</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>explosion strength</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>explosion range</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>explosion time</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>grenade type</name>
+				<subvalues>
+					<subvalue>
+						<name>explosive</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>poison</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>stun</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>blind</name>
+						<value>3</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>landmine</name>
+		<value>83</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>explosion strength</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>explosion range</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>2</no>
+				<name>explosion time</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>3</no>
+				<name>grenade type</name>
+				<subvalues>
+					<subvalue>
+						<name>explosive</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>poison</name>
+						<value>1</value>
+					</subvalue>
+					<subvalue>
+						<name>stun</name>
+						<value>2</value>
+					</subvalue>
+					<subvalue>
+						<name>blind</name>
+						<value>3</value>
+					</subvalue>
+				</subvalues>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>droid corpse</name>
+		<value>85</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>bolt</name>
+		<value>86</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>charges</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>checmical</name>
+		<value>87</value>
+		<values/>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>piece</name>
+		<value>88</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>other piece</name>
+				<subvalues/>
+			</value>
+			<value>
+				<no>1</no>
+				<name>destination object</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+	<itemtype>
+		<name>shipdevice</name>
+		<value>89</value>
+		<values>
+			<value>
+				<no>0</no>
+				<name>type</name>
+				<subvalues>
+					<subvalue>
+						<name>other</name>
+						<value>0</value>
+					</subvalue>
+					<subvalue>
+						<name>map</name>
+						<value>1</value>
+					</subvalue>
+				</subvalues>
+			</value>
+			<value>
+				<no>1</no>
+				<name>value</name>
+				<subvalues/>
+			</value>
+		</values>
+	</itemtype>
+
+
+
+
+</itemtypes>

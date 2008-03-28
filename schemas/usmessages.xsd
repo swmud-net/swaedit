@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/usmessages"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/usmessages"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList" />
+		</xsd:appinfo>
+	</xsd:annotation>
+
+
+	<xsd:element name="messages" type="messages"></xsd:element>
+
+	<xsd:complexType name="message">
+		<xsd:sequence>
+			<xsd:element name="title" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="body" type="xsd:string"></xsd:element>
+			<xsd:element name="timestamp" type="xsd:unsignedLong"></xsd:element>
+			<xsd:element name="author" type="xsd:normalizedString"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="messages">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="message" type="message"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

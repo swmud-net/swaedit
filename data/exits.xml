@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exits xmlns="http://swmud.pl/ns/swaedit/exits"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/exits src/exits.xsd ">
+	<exit opposite="8">
+		<abbreviation>NW</abbreviation>
+		<name>north-west</name>
+		<value>7</value>
+	</exit>
+
+	<exit opposite="2">
+		<abbreviation>N</abbreviation>
+		<name>north</name>
+		<value>0</value>
+	</exit>
+
+	<exit opposite="9">
+		<abbreviation>NE</abbreviation>
+		<name>north-east</name>
+		<value>6</value>
+	</exit>
+
+	<exit opposite="1">
+		<abbreviation>W</abbreviation>
+		<name>west</name>
+		<value>3</value>
+	</exit>
+
+	<exit>
+		<abbreviation>?</abbreviation>
+		<name>somewhere</name>
+		<value>10</value>
+	</exit>
+
+	<exit opposite="3">
+		<abbreviation>E</abbreviation>
+		<name>east</name>
+		<value>1</value>
+	</exit>
+
+	<exit opposite="6">
+		<abbreviation>SW</abbreviation>
+		<name>south-west</name>
+		<value>9</value>
+	</exit>
+
+	<exit opposite="0">
+		<abbreviation>S</abbreviation>
+		<name>south</name>
+		<value>2</value>
+	</exit>
+
+	<exit opposite="7">
+		<abbreviation>SE</abbreviation>
+		<name>south-east</name>
+		<value>8</value>
+	</exit>
+
+	<exit opposite="5">
+		<abbreviation>Up</abbreviation>
+		<name>up</name>
+		<value>4</value>
+	</exit>
+
+	<exit opposite="4">
+		<abbreviation>Dn</abbreviation>
+		<name>down</name>
+		<value>5</value>
+	</exit>
+</exits>

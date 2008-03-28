@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/resets"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/resets"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList" />
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="resets" type="resets"></xsd:element>
+
+	<xsd:complexType name="resets">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="reset" type="reset"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="reset">
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="value" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="extra" type="arg"></xsd:element>
+			<xsd:element name="arg1" type="arg"></xsd:element>
+			<xsd:element name="arg2" type="arg"></xsd:element>
+			<xsd:element name="arg3" type="arg"></xsd:element>
+			<xsd:element name="arg4" type="arg"></xsd:element>
+			<xsd:element name="requires" type="xsd:normalizedString"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="arg">
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="values" type="values"></xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="type" use="optional" default="intval">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:normalizedString">
+					<xsd:enumeration value="room"></xsd:enumeration>
+					<xsd:enumeration value="room_other"></xsd:enumeration>
+					<xsd:enumeration value="mob"></xsd:enumeration>
+					<xsd:enumeration value="mob_other"></xsd:enumeration>
+					<xsd:enumeration value="item"></xsd:enumeration>
+					<xsd:enumeration value="item_other"></xsd:enumeration>
+					<xsd:enumeration value="ship"></xsd:enumeration>
+					<xsd:enumeration value="ship_other"></xsd:enumeration>
+					<xsd:enumeration value="intval"></xsd:enumeration>
+					<xsd:enumeration value="strval"></xsd:enumeration>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="values">
+    	<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+    		<xsd:element name="value" type="value"></xsd:element>
+    	</xsd:sequence>
+    	<xsd:attribute name="type" use="optional" default="types">
+    		<xsd:simpleType>
+    			<xsd:restriction base="xsd:string">
+    				<xsd:enumeration value="types"></xsd:enumeration>
+    				<xsd:enumeration value="flags"></xsd:enumeration>
+    			</xsd:restriction>
+    		</xsd:simpleType>
+    	</xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="value">
+    	<xsd:sequence>
+    		<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+    		<xsd:element name="value" type="xsd:normalizedString"></xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/exits"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/exits"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList" />
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="exits" type="exits"></xsd:element>
+
+	<xsd:complexType name="exit">
+		<xsd:sequence maxOccurs="1" minOccurs="0">
+			<xsd:element name="abbreviation"
+				type="xsd:normalizedString">
+			</xsd:element>
+			<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="value" type="xsd:unsignedByte"></xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="empty" type="xsd:boolean" use="optional"
+			default="false">
+		</xsd:attribute>
+		<xsd:attribute name="opposite" type="xsd:byte" use="optional" default="-1"></xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="exits">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="exit" type="exit"></xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="gridColumns" type="xsd:unsignedByte"
+			use="optional" default="3">
+		</xsd:attribute>
+	</xsd:complexType>
+</xsd:schema>

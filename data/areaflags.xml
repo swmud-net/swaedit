@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<flags xmlns="http://swmud.pl/ns/swaedit/flags"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/flags src/flags.xsd ">
+	<flag>
+		<name>nopkill</name>
+		<value>1</value>
+	</flag>
+	<flag>
+		<name>nightdesc</name>
+		<value>2</value>
+	</flag>
+	<flag>
+		<name>nohail</name>
+		<value>4</value>
+	</flag>
+	<flag>
+		<name>hidden</name>
+		<value>8</value>
+	</flag>
+	<flag>
+		<name>dont_show_planet</name>
+		<value>16</value>
+	</flag>
+	<flag>
+		<name>prototype</name>
+		<value>32</value>
+	</flag>
+	<flag>
+		<name>for_ships</name>
+		<value>64</value>
+	</flag>
+</flags>

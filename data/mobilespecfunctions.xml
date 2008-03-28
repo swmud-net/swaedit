@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<names xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/names src/names.xsd ">
+	<name>spec_auth</name>
+	<name>spec_cast_adept</name>
+	<name>spec_clan_guard</name>
+	<name>spec_customs_alcohol</name>
+	<name>spec_customs_smut</name>
+	<name>spec_customs_spice</name>
+	<name>spec_customs_weapons</name>
+	<name>spec_dark_jedi</name>
+	<name>spec_executioner</name>
+	<name>spec_fido</name>
+	<name>spec_guard</name>
+	<name>spec_guardian</name>
+	<name>spec_janitor</name>
+	<name>spec_jedi</name>
+	<name>spec_mayor</name>
+	<name>spec_newbie_pilot</name>
+	<name>spec_new_republic_trooper</name>
+	<name>spec_poison</name>
+	<name>spec_police</name>
+	<name>spec_police_attack</name>
+	<name>spec_police_fine</name>
+	<name>spec_police_jail</name>
+	<name>spec_prosecutor</name>
+	<name>spec_stormtrooper</name>
+	<name>spec_thief</name>
+</names>

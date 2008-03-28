@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resets xmlns="http://swmud.pl/ns/swaedit/resets"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/resets ../schemas/resets.xsd ">
+
+	<reset>
+		<name>Reset mobile (in room)</name>
+		<value>M</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="mob">
+			<name>Mobile vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name>Limit</name>
+			<values></values>
+		</arg2>
+		<arg3 type="room">
+			<name>Room vnum</name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Reset item (in room)</name>
+		<value>O</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="item">
+			<name>Item vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name></name>
+			<values></values>
+		</arg2>
+		<arg3 type="room">
+			<name>Room vnum</name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Reset item (in item)</name>
+		<value>P</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="item">
+			<name>Item vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name></name>
+			<values></values>
+		</arg2>
+		<arg3 type="item_other">
+			<name>Item-to vnum</name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Reset item (in mobile's inventory)</name>
+		<value>G</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="item">
+			<name>Item vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name></name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name></name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires>M</requires>
+	</reset>
+
+	<reset>
+		<name>Reset item (in mobile's equipment)</name>
+		<value>E</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="item">
+			<name>Item vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name></name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name>Wear location</name>
+			<values>
+				<value>
+					<name>NONE</name>
+					<value>-1</value>
+				</value>
+				<value>
+					<name>LIGHT</name>
+					<value>0</value>
+				</value>
+				<value>
+					<name>FINGER_L</name>
+					<value>1</value>
+				</value>
+				<value>
+					<name>FINGER_R</name>
+					<value>2</value>
+				</value>
+				<value>
+					<name>NECK_1</name>
+					<value>3</value>
+				</value>
+				<value>
+					<name>NECK_2</name>
+					<value>4</value>
+				</value>
+				<value>
+					<name>BODY</name>
+					<value>5</value>
+				</value>
+				<value>
+					<name>HEAD</name>
+					<value>6</value>
+				</value>
+				<value>
+					<name>LEGS</name>
+					<value>7</value>
+				</value>
+				<value>
+					<name>FEET</name>
+					<value>8</value>
+				</value>
+				<value>
+					<name>HANDS</name>
+					<value>9</value>
+				</value>
+				<value>
+					<name>ARMS</name>
+					<value>10</value>
+				</value>
+				<value>
+					<name>SHIELD</name>
+					<value>11</value>
+				</value>
+				<value>
+					<name>ABOUT</name>
+					<value>12</value>
+				</value>
+				<value>
+					<name>WAIST</name>
+					<value>13</value>
+				</value>
+				<value>
+					<name>WRIST_L</name>
+					<value>14</value>
+				</value>
+				<value>
+					<name>WRIST_R</name>
+					<value>15</value>
+				</value>
+				<value>
+					<name>WIELD</name>
+					<value>16</value>
+				</value>
+				<value>
+					<name>HOLD</name>
+					<value>17</value>
+				</value>
+				<value>
+					<name>DUAL_WIELD</name>
+					<value>18</value>
+				</value>
+				<value>
+					<name>EARS</name>
+					<value>19</value>
+				</value>
+				<value>
+					<name>EYES</name>
+					<value>20</value>
+				</value>
+				<value>
+					<name>MISSILE_WIELD</name>
+					<value>21</value>
+				</value>
+				<value>
+					<name>MAX_WEAR</name>
+					<value>22</value>
+				</value>
+			</values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires>M</requires>
+	</reset>
+
+	<reset>
+		<name>Reset door [not recommended!]</name>
+		<value>D</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="room">
+			<name>Room vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name>Door number</name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name>Door flags</name>
+			<values type="flags">
+				<value>
+				    <name>isdoor</name>
+				    <value>1</value>
+				</value>
+				<value>
+				    <name>closed</name>
+				    <value>2</value>
+				</value>
+				<value>
+				    <name>locked</name>
+				    <value>4</value>
+				</value>
+				<value>
+				    <name>secret</name>
+				    <value>8</value>
+				</value>
+				<value>
+				    <name>swim</name>
+				    <value>16</value>
+				</value>
+				<value>
+				    <name>pickproof</name>
+				    <value>32</value>
+				</value>
+				<value>
+				    <name>fly</name>
+				    <value>64</value>
+				</value>
+				<value>
+				    <name>climb</name>
+				    <value>128</value>
+				</value>
+				<value>
+				    <name>dig</name>
+				    <value>256</value>
+				</value>
+				<value>
+				    <name>res1</name>
+				    <value>512</value>
+				</value>
+				<value>
+				    <name>nopassdoor</name>
+				    <value>1024</value>
+				</value>
+				<value>
+				    <name>hidden</name>
+				    <value>2048</value>
+				</value>
+				<value>
+				    <name>passage</name>
+				    <value>4096</value>
+				</value>
+				<value>
+				    <name>portal</name>
+				    <value>8192</value>
+				</value>
+				<value>
+				    <name>res2</name>
+				    <value>16384</value>
+				</value>
+				<value>
+				    <name>res3</name>
+				    <value>32768</value>
+				</value>
+				<value>
+				    <name>xclimb</name>
+				    <value>65536</value>
+				</value>
+				<value>
+				    <name>xenter</name>
+				    <value>131072</value>
+				</value>
+				<value>
+				    <name>xleave</name>
+				    <value>262144</value>
+				</value>
+				<value>
+				    <name>xauto</name>
+				    <value>524288</value>
+				</value>
+				<value>
+				    <name>res4</name>
+				    <value>1048576</value>
+				</value>
+				<value>
+				    <name>xsearchable</name>
+				    <value>2097152</value>
+				</value>
+				<value>
+				    <name>bashed</name>
+				    <value>4194304</value>
+				</value>
+				<value>
+				    <name>bashproof</name>
+				    <value>8388608</value>
+				</value>
+				<value>
+				    <name>nomob</name>
+				    <value>16777216</value>
+				</value>
+				<value>
+				    <name>window</name>
+				    <value>33554432</value>
+				</value>
+				<value>
+				    <name>xlook</name>
+				    <value>67108864</value>
+				</value>
+			</values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Randomize exits [not recommended!]</name>
+		<value>R</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1 type="room">
+			<name>Room vnum</name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name>To-door number</name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name></name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Stop [do not use!]</name>
+		<value>S</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1>
+			<name></name>
+			<values></values>
+		</arg1>
+		<arg2>
+			<name></name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name></name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+
+	<reset>
+		<name>Reset ship (in room) [not fully implemented yet!]</name>
+		<value>C</value>
+		<extra>
+			<name></name>
+			<values></values>
+		</extra>
+		<arg1>
+			<name></name>
+			<values></values>
+		</arg1>
+		<arg2 type="ship">
+			<name>Ship vnum</name>
+			<values></values>
+		</arg2>
+		<arg3>
+			<name>Limit</name>
+			<values></values>
+		</arg3>
+		<arg4>
+			<name></name>
+			<values></values>
+		</arg4>
+		<requires></requires>
+	</reset>
+</resets>

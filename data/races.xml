@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<names xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/names src/names.xsd ">
+	<name>Human</name>
+	<name>Adarian</name>
+	<name>Animal</name>
+	<name>Aqualish</name>
+	<name>Arcona</name>
+	<name>Arkanianin</name>
+	<name>Barabel</name>
+	<name>Bimm</name>
+	<name>Bith</name>
+	<name>Bothan</name>
+	<name>Caridanin</name>
+	<name>Cerean</name>
+	<name>Chadra-Fan</name>
+	<name>Chubbit</name>
+	<name>Codru Ji</name>
+	<name>Coway</name>
+	<name>Deavaronian</name>
+	<name>Defel</name>
+	<name>Drall</name>
+	<name>Droll</name>
+	<name>Drovianin</name>
+	<name>Duch Lorda Sith</name>
+	<name>Duch Mistrza Jedi</name>
+	<name>Duinuogwuin</name>
+	<name>Duros</name>
+	<name>Etti</name>
+	<name>Ewok</name>
+	<name>Fia</name>
+	<name>Firrerreonianin</name>
+	<name>Gados</name>
+	<name>Gamorrean</name>
+	<name>Gops</name>
+	<name>Gorax</name>
+	<name>Gotal</name>
+	<name>Gran</name>
+	<name>Gungan</name>
+	<name>H'drach</name>
+	<name>Hutt</name>
+	<name>Iktotchi</name>
+	<name>Insect</name>
+	<name>Ithorian</name>
+	<name>Ixel</name>
+	<name>Jawa</name>
+	<name>Kel Dor</name>
+	<name>Khommowin</name>
+	<name>Kurtzen</name>
+	<name>Massassi</name>
+	<name>Meeki</name>
+	<name>Melodianin</name>
+	<name>Mon Calamari</name>
+	<name>Moocher</name>
+	<name>Mrlss</name>
+	<name>Mulk</name>
+	<name>Myneyrsh</name>
+	<name>Net</name>
+	<name>Noghri</name>
+	<name>Object</name>
+	<name>Plant</name>
+	<name>Pływak</name>
+	<name>Psadan</name>
+	<name>P'W'eck</name>
+	<name>Pydyrian</name>
+	<name>Quarren</name>
+	<name>Rodian</name>
+	<name>Selonianin</name>
+	<name>Ssi-ruuk</name>
+	<name>Sullustan</name>
+	<name>Talz</name>
+	<name>Tchuukthai</name>
+	<name>Teek</name>
+	<name>T'landa Til</name>
+	<name>Toka</name>
+	<name>Trandoshan</name>
+	<name>Tusken</name>
+	<name>Twi'lek</name>
+	<name>Tynnanin</name>
+	<name>Ughnaught</name>
+	<name>Verpine</name>
+	<name>Vors</name>
+	<name>Vratix</name>
+	<name>Wookiee</name>
+	<name>Wyrwulf</name>
+	<name>Yaka</name>
+	<name>Yaveth</name>
+	<name>Ysanna</name>
+	<name>Yuuzhan Vong</name>
+	<name>Yuzzum</name>
+	<name>Zabrak</name>
+	<name>Zieleniak</name>
+</names>

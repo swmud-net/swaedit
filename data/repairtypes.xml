@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<types xmlns="http://swmud.pl/ns/swaedit/types"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/types src/types.xsd ">
+	<type>
+		<name>fix</name>
+		<value>1</value>
+	</type>
+	<type>
+		<name>recharge</name>
+		<value>2</value>
+	</type>
+</types>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/names"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList"/>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="names" type="names"></xsd:element>
+
+	<xsd:complexType name="names">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

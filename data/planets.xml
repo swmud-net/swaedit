@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<names xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/names src/names.xsd ">
+	<name>Adari</name>
+	<name>Anoth</name>
+	<name>Bakura</name>
+	<name>Bespin</name>
+	<name>Biosh</name>
+	<name>Byss</name>
+	<name>Corellia</name>
+	<name>Coruscant</name>
+	<name>Dagobah</name>
+	<name>Endor</name>
+	<name>Gamorr</name>
+	<name>Geonosis</name>
+	<name>Hapes</name>
+	<name>Honoghr</name>
+	<name>Hoth</name>
+	<name>Jhas</name>
+	<name>Kamino</name>
+	<name>Kashyyyk</name>
+	<name>Kessel</name>
+	<name>Korriban</name>
+	<name>Kuat</name>
+	<name>Mon Calamari</name>
+	<name>Naboo</name>
+	<name>Nar Shadda</name>
+	<name>Nushk</name>
+	<name>Ordaj</name>
+	<name>Ord Mantell</name>
+	<name>Ryloth</name>
+	<name>Selonia</name>
+	<name>Shron</name>
+	<name>Tatooine</name>
+	<name>Umgul</name>
+	<name>Wayland</name>
+	<name>Yavin IV</name>
+</names>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/lastupdate"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/lastupdate"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList" />
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="lastupdate" type="lastupdate"></xsd:element>
+
+	<xsd:complexType name="lastupdate">
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:unsignedLong"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+</xsd:schema>

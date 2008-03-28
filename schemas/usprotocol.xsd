@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://swmud.pl/ns/swaedit/usprotocol"
+	elementFormDefault="qualified"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://swmud.pl/ns/swaedit/usprotocol"
+	xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:globalBindings collectionType="java.util.LinkedList" />
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="usprotocol" type="usprotocol"></xsd:element>
+
+	<xsd:complexType name="request">
+		<xsd:sequence maxOccurs="1" minOccurs="0">
+			<xsd:element name="file" type="xsd:normalizedString"
+				maxOccurs="unbounded" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="message" type="xsd:normalizedString"
+				maxOccurs="unbounded" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="resource" use="optional" default="all">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:normalizedString">
+					<xsd:enumeration value="all"></xsd:enumeration>
+					<xsd:enumeration value="files"></xsd:enumeration>
+					<xsd:enumeration value="messages"></xsd:enumeration>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="filePort" use="optional" default="8011">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:unsignedShort">
+					<xsd:minExclusive value="1024"></xsd:minExclusive>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="timestamp" type="xsd:unsignedLong"
+			use="optional" default="0">
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="response">
+		<xsd:sequence>
+			<xsd:element name="messages" type="messages" maxOccurs="1"
+				minOccurs="0">
+			</xsd:element>
+			<xsd:element name="files" type="files" maxOccurs="1"
+				minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="file">
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="timestamp" type="xsd:unsignedLong"></xsd:element>
+			<xsd:element name="length" type="xsd:unsignedLong"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="message">
+		<xsd:sequence>
+			<xsd:element name="title" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="body" type="xsd:normalizedString"></xsd:element>
+			<xsd:element name="timestamp" type="xsd:unsignedLong"></xsd:element>
+			<xsd:element name="author" type="xsd:normalizedString"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="messages">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="message" type="message"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="files">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="file" type="file"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+
+	<xsd:complexType name="usprotocol">
+		<xsd:choice>
+			<xsd:element name="request" type="request"></xsd:element>
+			<xsd:element name="response" type="response"></xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
+</xsd:schema>

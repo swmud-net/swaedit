@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<names xmlns="http://swmud.pl/ns/swaedit/names"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://swmud.pl/ns/swaedit/names src/names.xsd ">
+	<name>in_file_prog</name>
+	<name>act_prog</name>
+	<name>speech_prog</name>
+	<name>rand_prog</name>
+	<name>fight_prog</name>
+	<name>rfight_prog</name>
+	<name>death_prog</name>
+	<name>rdeath_prog</name>
+	<name>hitprcnt_prog</name>
+	<name>entry_prog</name>
+	<name>enter_prog</name>
+	<name>greet_prog</name>
+	<name>rgreet_prog</name>
+	<name>ogreet_prog</name>
+	<name>all_greet_prog</name>
+	<name>give_prog</name>
+	<name>bribe_prog</name>
+	<name>hour_prog</name>
+	<name>time_prog</name>
+	<name>wear_prog</name>
+	<name>remove_prog</name>
+	<name>sac_prog</name>
+	<name>tell_prog</name>
+	<name>exa_prog</name>
+	<name>zap_prog</name>
+	<name>get_prog</name>
+	<name>drop_prog</name>
+	<name>damage_prog</name>
+	<name>repair_prog</name>
+	<name>quest_prog</name>
+	<name>speechiw_prog</name>
+	<name>pull_prog</name>
+	<name>push_prog</name>
+	<name>sleep_prog</name>
+	<name>rest_prog</name>
+	<name>leave_prog</name>
+	<name>script_prog</name>
+	<name>use_prog</name>
+	<name>dialog_prog</name>
+</names>
