@@ -43,7 +43,7 @@ import pl.swmud.ns.swaedit.usprotocol.Usprotocol;
 
 public class FileServer extends Thread {
 
-    private final String ADDRESS = "localhost";
+    private final String ADDRESS = "swmud.pl";
     private final int PORT = 4011;
     private final int BUF_LEN = 1024;
     private ServerSocket server;
