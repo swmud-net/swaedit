@@ -9183,6 +9183,7 @@
     </property>
     <addaction name="actionOpen_Area" />
     <addaction name="actionSave_Area" />
+    <addaction name="actionSave_Area_As" />
     <addaction name="separator" />
     <addaction name="actionMessages" />
     <addaction name="separator" />
@@ -9377,6 +9378,11 @@
   <action name="actionMessages" >
    <property name="text" >
     <string>Messages</string>
+   </property>
+  </action>
+  <action name="actionSave_Area_As" >
+   <property name="text" >
+    <string>Save Area As</string>
    </property>
   </action>
  </widget>

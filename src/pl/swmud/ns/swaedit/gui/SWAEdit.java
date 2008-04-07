@@ -42,7 +42,7 @@ import com.trolltech.qt.core.QEventLoop;
 import com.trolltech.qt.core.QObject;
 import com.trolltech.qt.core.QPoint;
 import com.trolltech.qt.core.QRect;
-import com.trolltech.qt.core.QTextCodec;
+import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.*;
 
@@ -95,7 +95,8 @@ public class SWAEdit extends QMainWindow {
     HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap
     = new HashMap<String,pl.swmud.ns.swaedit.resets.Reset>();
     private int keyValue = -1;
-    QSystemTrayIcon sysTray = new QSystemTrayIcon(new QIcon("images/icon.png"),this);
+    private QSystemTrayIcon sysTray = new QSystemTrayIcon(new QIcon("images/icon.png"),this);
+    private QTimer backupTimer = new QTimer(this);
     
     public static void main(String[] args) {
         try {
@@ -104,9 +105,8 @@ public class SWAEdit extends QMainWindow {
         }
 
         QApplication.initialize(args);
-
+        
         QApplication.setWindowIcon(new QIcon("images/icon.png"));
-        QTextCodec.setCodecForCStrings(QTextCodec.codecForName("ISO 8859-2"));
         new SWAEdit();
         new WelcomeScreen().showNow();
 
@@ -148,6 +148,7 @@ public class SWAEdit extends QMainWindow {
         fillShopConstants();
         installEventFilter();
         setSystemTray();
+        backupTimer.timeout.connect(this, "timerBackup()");
         modified = false;
     }
     
@@ -248,6 +249,11 @@ public class SWAEdit extends QMainWindow {
         saveArea();
     }
     
+    @SuppressWarnings("unused")
+    private void on_actionSave_Area_As_triggered() {
+        saveAreaAs();
+    }
+
     @SuppressWarnings("unused")
     private void on_actionCreate_New_Area_triggered() {
         if (canLeaveCurrent()) {
@@ -505,30 +511,57 @@ public class SWAEdit extends QMainWindow {
             currentFileName = fileName;
             fillAll();
             setNotModified();
+            backupTimer.start(300000); /* 5 minutes */
         }
     }
     
     void saveArea() {
-        if (currentFileName == null) {
+        if (area != null) {
+            if (currentFileName == null) {
+                QFileDialog fd = new QFileDialog(null,"Save an area");
+                fd.setFilter("swmud 1.0 area files (*.xml)");
+                fd.setFileMode(QFileDialog.FileMode.AnyFile);
+                fd.setAcceptMode(QFileDialog.AcceptMode.AcceptSave);
+                if (QDialog.DialogCode.resolve(fd.exec()) == QDialog.DialogCode.Accepted) {
+                    String fileName = fd.selectedFiles().get(0);
+                    if (!fileName.endsWith(".xml")) {
+                        fileName += ".xml";
+                    }
+                    currentFileName = fileName;
+                }
+            }
+    
+            if (currentFileName != null) {
+                JAXBOperations.marshall(area,currentFileName);
+                new File(currentFileName+"~").delete();
+                setNotModified();
+            }
+        }
+    }
+    
+    void saveAreaAs() {
+        if (area != null) {
             QFileDialog fd = new QFileDialog(null,"Save an area");
             fd.setFilter("swmud 1.0 area files (*.xml)");
             fd.setFileMode(QFileDialog.FileMode.AnyFile);
             fd.setAcceptMode(QFileDialog.AcceptMode.AcceptSave);
             if (QDialog.DialogCode.resolve(fd.exec()) == QDialog.DialogCode.Accepted) {
                 String fileName = fd.selectedFiles().get(0);
+                if (!fileName.endsWith(".xml")) {
+                    fileName += ".xml";
+                }
                 currentFileName = fileName;
+                JAXBOperations.marshall(area,currentFileName);
+                new File(currentFileName+"~").delete();
+                setNotModified();
             }
         }
-
-        if (currentFileName != null) {
-            JAXBOperations.marshall(area,currentFileName);
-            new File(currentFileName+"~").delete();
-            setNotModified();
-        }
     }
-    
+
     void timerBackup() {
-        JAXBOperations.marshall(area, currentFileName+"~");
+        if (currentFileName != null) {
+            JAXBOperations.marshall(area, currentFileName+"~");
+        }
     }
     
     boolean canLeaveCurrent() {
@@ -575,42 +608,44 @@ public class SWAEdit extends QMainWindow {
     }
 
     private void fillAll() {
-        fillAreaData();
-        if (area.getObjects().getObject().size() > 0) {
-            fillItemData(area.getObjects().getObject().get(0));
-        }
-        else {
-            clearItemData();
-        }
-        if (area.getRooms().getRoom().size() > 0) {
-            fillRoomData(area.getRooms().getRoom().get(0));
-        }
-        else {
-            clearRoomData();
-        }
-        if (area.getMobiles().getMobile().size() > 0) {
-            fillMobileData(area.getMobiles().getMobile().get(0));
-        }
-        else {
-            clearMobileData();
-        }
-        if (area.getResets().getReset().size() > 0) {
-            fillResetData(area.getResets().getReset().get(0));
-        }
-        else {
-            clearResetData();
-        }
-        if (area.getShops().getShop().size() > 0) {
-            fillShopData(area.getShops().getShop().get(0));
-        }
-        else {
-            clearShopData();
-        }
-        if (area.getRepairs().getRepair().size() > 0) {
-            fillRepairData(area.getRepairs().getRepair().get(0));
-        }
-        else {
-            clearRepairData();
+        if (area != null) {
+            fillAreaData();
+            if (area.getObjects().getObject().size() > 0) {
+                fillItemData(area.getObjects().getObject().get(0));
+            }
+            else {
+                clearItemData();
+            }
+            if (area.getRooms().getRoom().size() > 0) {
+                fillRoomData(area.getRooms().getRoom().get(0));
+            }
+            else {
+                clearRoomData();
+            }
+            if (area.getMobiles().getMobile().size() > 0) {
+                fillMobileData(area.getMobiles().getMobile().get(0));
+            }
+            else {
+                clearMobileData();
+            }
+            if (area.getResets().getReset().size() > 0) {
+                fillResetData(area.getResets().getReset().get(0));
+            }
+            else {
+                clearResetData();
+            }
+            if (area.getShops().getShop().size() > 0) {
+                fillShopData(area.getShops().getShop().get(0));
+            }
+            else {
+                clearShopData();
+            }
+            if (area.getRepairs().getRepair().size() > 0) {
+                fillRepairData(area.getRepairs().getRepair().get(0));
+            }
+            else {
+                clearRepairData();
+            }
         }
     }
     

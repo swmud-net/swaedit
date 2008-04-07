@@ -1,12 +1,9 @@
 package pl.swmud.ns.swaedit.core;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
 
 import javax.xml.XMLConstants;
@@ -20,6 +17,10 @@ import javax.xml.validation.SchemaFactory;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.trolltech.qt.core.QByteArray;
+import com.trolltech.qt.core.QFile;
+import com.trolltech.qt.core.QTextCodec;
 
 
 import pl.swmud.ns.swaedit.exits.Exits;
@@ -36,23 +37,29 @@ import pl.swmud.ns.swmud._1_0.area.Area;
 
 public final class JAXBOperations {
     
-    /* currently deletes only &#13; entities (carret return)
-     * requires hure memory ammounts on large files, it's good
-     * area files are small in size :-) */
+    private static final String FILE_ENCODING = "ISO-8859-2";
+    private static final long MAX_FILE_SIZE = 8388608; /* 8M */
+
+    /* deletes &#13; entities (caret return) & manages encoding */
     private static InputSource filter(String path) {
         InputSource result = null;
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
-            StringBuffer sb = new StringBuffer();
-            {
-                char[] buf = new char[8192];
-                int cnt;
-                while( (cnt = br.read(buf, 0, 8192)) != -1 ) {
-                    sb.append(buf, 0, cnt);
+            QByteArray buf = null;
+            QFile file = new QFile(path);
+            if (file.open(QFile.OpenModeFlag.ReadOnly)) {
+                if (file.size() > MAX_FILE_SIZE) {
+                    file.close();
+                    throw new IOException("swaedit supports areas up to "+MAX_FILE_SIZE+"B large");
+                    /* it is stupid to use IOException here, find and use a better one */
+                }
+                buf = file.readAll();
+                file.close();
             }
+            else {
+                throw new IOException("cannot open file: "+path);
             }
-            br.close();
-            String str = new String(sb).replaceAll("&#13;", "");
+            String str = QTextCodec.codecForName(FILE_ENCODING).toUnicode(buf);
+            str = str.replaceAll("&#13;", "");
             result = new InputSource(new StringReader(str));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
