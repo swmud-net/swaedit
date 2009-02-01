@@ -52,17 +52,14 @@ public class ProgramsWidget extends QWidget{
         fillProgram(0);
     }
 
-    @SuppressWarnings("unused")
     private void on_prevButton_clicked() {
         fillProgram(currentProgram-1);
     }
 
-    @SuppressWarnings("unused")
     private void on_nextButton_clicked() {
         fillProgram(currentProgram+1);
     }
 
-    @SuppressWarnings("unused")
     private void on_lastButton_clicked() {
         fillProgram(programs.getProgram().size()-1);
     }

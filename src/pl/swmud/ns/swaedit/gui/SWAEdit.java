@@ -296,21 +296,18 @@ public class SWAEdit extends QMainWindow {
         }
     }
 
-    @SuppressWarnings("unused")
     private void on_actionCreate_New_Reset_triggered() {
         NewResetWidget newResetWidget = new NewResetWidget();
         newResetWidget.resetCreated.connect(this, "resetCreated()");
         newResetWidget.show();
     }
 
-    @SuppressWarnings("unused")
     private void on_actionCreate_New_Shop_triggered() {
         NewShopWidget nsw = new NewShopWidget(NewShopWidget.Type.SHOP);
         nsw.vnumChosen.connect(this,"shopVnumChosen(BigInteger)");
         nsw.show();
     }
 
-    @SuppressWarnings("unused")
     private void on_actionCreate_New_Repair_triggered() {
         NewShopWidget nsw = new NewShopWidget(NewShopWidget.Type.REPAIR);
         nsw.vnumChosen.connect(this,"repairVnumChosen(BigInteger)");
@@ -398,7 +395,6 @@ public class SWAEdit extends QMainWindow {
         statusBar().showMessage("Room deleted.", 5000);
     }
 
-    @SuppressWarnings("unused")
     private void on_actionDelete_Current_Reset_triggered() {
         Reset reset = getCurrentReset();
         if (reset == null) {
@@ -425,7 +421,6 @@ public class SWAEdit extends QMainWindow {
         statusBar().showMessage("Reset deleted.", 5000);
     }
 
-    @SuppressWarnings("unused")
     private void on_actionDelete_Current_Shop_triggered() {
         Shop shop = getCurrentShop();
         if (shop == null) {
@@ -452,7 +447,6 @@ public class SWAEdit extends QMainWindow {
         statusBar().showMessage("Shop deleted.", 5000);
     }
 
-    @SuppressWarnings("unused")
     private void on_actionDelete_Current_Repair_triggered() {
         Repair repair = getCurrentRepair();
         if (repair == null) {
@@ -3100,7 +3094,6 @@ public class SWAEdit extends QMainWindow {
                 String argName = wrapper.getName(i);
                 QComboBox box = (QComboBox)resetWidgets.get(argName);
                 int idx = -1;
-                @SuppressWarnings("unused")
                 int j = 0;
                 if (idx < 0 && j > 0) {
                     /* this is a vnum from another area */
@@ -3115,7 +3108,6 @@ public class SWAEdit extends QMainWindow {
                 String argName = wrapper.getName(i);
                 QComboBox box = (QComboBox)resetWidgets.get(argName);
                 int idx = -1;
-                @SuppressWarnings("unused")
                 int j = 0;
                 /* not fully supported yet */
                 if (idx < 0 && j > 0) {
