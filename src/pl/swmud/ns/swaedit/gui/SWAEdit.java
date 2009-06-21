@@ -16,6 +16,7 @@ import pl.swmud.ns.swaedit.core.FileServer;
 import pl.swmud.ns.swaedit.core.FlagsWrapper;
 import pl.swmud.ns.swaedit.core.IFlagsSetter;
 import pl.swmud.ns.swaedit.core.JAXBOperations;
+import pl.swmud.ns.swaedit.core.Renumberer;
 import pl.swmud.ns.swaedit.core.ResetWrapper;
 import pl.swmud.ns.swaedit.exits.Exits;
 import pl.swmud.ns.swaedit.flags.Flag;
@@ -261,6 +262,13 @@ public class SWAEdit extends QMainWindow {
             newAreaWidget.areaCreated.connect(this, "areaCreated()");
             newAreaWidget.show();
         }
+    }
+
+    @SuppressWarnings("unused")
+    private void on_actionRenumber_triggered() {
+        RenumberWidget renumberWidget = new RenumberWidget();
+        renumberWidget.vnumSpecified.connect(this, "renumber(BigInteger)");
+        renumberWidget.show();
     }
 
     @SuppressWarnings("unused")
@@ -588,6 +596,14 @@ public class SWAEdit extends QMainWindow {
         ui.tabWidget.setCurrentIndex(0);
         ui.nameEdit.setFocus();
         statusBar().showMessage("New area created.", 5000);
+    }
+    
+    @SuppressWarnings("unused")
+    private void renumber(BigInteger newFirstVnum) {
+        new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_RELIABLE).renumber();
+        fillAll();
+        setModified();
+        statusBar().showMessage("Area vnum range changed.", 5000);
     }
     
     private Short newShort(ObjectFactory of) {
