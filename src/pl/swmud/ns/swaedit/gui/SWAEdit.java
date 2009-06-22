@@ -49,6 +49,8 @@ import com.trolltech.qt.gui.*;
 
 public class SWAEdit extends QMainWindow {
     
+    public static final int MAX_RESET_ARGS = 5;
+    
     static SWAEdit ref;
     private Ui_SWAEdit ui = new Ui_SWAEdit();
     private Flags areaFlags;
@@ -600,7 +602,7 @@ public class SWAEdit extends QMainWindow {
     
     @SuppressWarnings("unused")
     private void renumber(BigInteger newFirstVnum) {
-        new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_RELIABLE).renumber();
+        new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_RELIABLE, resetsMap).renumber();
         fillAll();
         setModified();
         statusBar().showMessage("Area vnum range changed.", 5000);
@@ -2956,7 +2958,7 @@ public class SWAEdit extends QMainWindow {
         String type;
         ResetWrapper wrapper = new ResetWrapper(reset, res, 0);
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < MAX_RESET_ARGS; i++) {
             if (wrapper.getArg(i).getValues().getValue().size() > 0
                     && wrapper.getArg(i).getValues().getType().equals("types")) {
                 resetCreateTypeWidget(new ResetWrapper(reset, res, i));
