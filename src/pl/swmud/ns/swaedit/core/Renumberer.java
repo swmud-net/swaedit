@@ -1,9 +1,17 @@
 package pl.swmud.ns.swaedit.core;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import sun.security.util.BigInt;
 
 import com.trolltech.qt.gui.QComboBox;
+import com.trolltech.qt.gui.QMessageBox;
 
 import pl.swmud.ns.swaedit.gui.SWAEdit;
 import pl.swmud.ns.swaedit.resets.Arg;
@@ -28,7 +36,7 @@ public class Renumberer {
      */
     public static final int RENUMBER_MUDPROGS = 1;
     private Area area;
-    private BigInteger newFirstVnum;
+//    private BigInteger newFirstVnum;
     private int flags;
     HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap = new HashMap<String, pl.swmud.ns.swaedit.resets.Reset>();
     private BigInteger lvnum;
@@ -38,7 +46,7 @@ public class Renumberer {
     public Renumberer(Area area, BigInteger newFirstVnum, int flags,
             HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap) {
         this.area = area;
-        this.newFirstVnum = newFirstVnum;
+//        this.newFirstVnum = newFirstVnum;
         this.flags = flags;
         this.resetsMap = resetsMap;
         lvnum = area.getHead().getVnums().getLvnum();
@@ -95,9 +103,9 @@ public class Renumberer {
                 mob.setVnum(getNewVnum(vnum));
             }
 
-            if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
+//            if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
                 renumberPrograms(mob.getPrograms());
-            }
+//            }
         }
 
         /* rooms */
@@ -133,7 +141,28 @@ public class Renumberer {
 
     private void renumberPrograms(Programs progs) {
         for (Program prog : progs.getProgram()) {
-            //TODO: renumber progs
+            //TODO: gather warnings about vnum changes and prepare them for returning somehow
+            BufferedReader br = new BufferedReader(new StringReader(prog.getComlist()));
+            String line;
+            StringBuilder comlist = new StringBuilder();
+            try {
+                while ((line = br.readLine()) != null) {
+                    Pattern p = Pattern.compile("\\b[mio]?[1-9][0-9]*\\b", Pattern.CASE_INSENSITIVE);
+                    Matcher m = p.matcher(line);
+                    String strVnum;
+                    BigInteger vnum;
+                    while (m.find()) {
+                        strVnum =  m.group().replaceFirst("^[mio]", "");
+                        System.out.println("prog vnum match: " + strVnum);
+                        if (isAreaVnum(vnum = BigInteger.valueOf(Long.parseLong(strVnum)))) {
+                            line = line.replaceFirst(strVnum, getNewVnum(vnum).toString());
+                        }
+                    }
+                    comlist.append(line+"\n");
+                }
+            } catch (IOException ignored) {
+            }
+            prog.setComlist(comlist.toString());
         }
     }
 
