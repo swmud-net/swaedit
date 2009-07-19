@@ -5,18 +5,15 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.security.util.BigInt;
-
-import com.trolltech.qt.gui.QComboBox;
-import com.trolltech.qt.gui.QMessageBox;
-
 import pl.swmud.ns.swaedit.gui.SWAEdit;
-import pl.swmud.ns.swaedit.resets.Arg;
 import pl.swmud.ns.swmud._1_0.area.Area;
 import pl.swmud.ns.swmud._1_0.area.Programs;
+import pl.swmud.ns.swmud._1_0.area.Head.Vnums;
 import pl.swmud.ns.swmud._1_0.area.Mobiles.Mobile;
 import pl.swmud.ns.swmud._1_0.area.Objects.Object;
 import pl.swmud.ns.swmud._1_0.area.Programs.Program;
@@ -36,17 +33,16 @@ public class Renumberer {
      */
     public static final int RENUMBER_MUDPROGS = 1;
     private Area area;
-//    private BigInteger newFirstVnum;
     private int flags;
     HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap = new HashMap<String, pl.swmud.ns.swaedit.resets.Reset>();
     private BigInteger lvnum;
     private BigInteger uvnum;
     private BigInteger vnumDifference;
+    private List<String> warnings = new LinkedList<String>();
 
     public Renumberer(Area area, BigInteger newFirstVnum, int flags,
             HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap) {
         this.area = area;
-//        this.newFirstVnum = newFirstVnum;
         this.flags = flags;
         this.resetsMap = resetsMap;
         lvnum = area.getHead().getVnums().getLvnum();
@@ -69,13 +65,6 @@ public class Renumberer {
         return vnum.compareTo(lvnum) >= 0 && vnum.compareTo(uvnum) <= 0;
     }
 
-    /**
-     * Overloaded method provided for convenience.
-     */
-    private boolean isAreaVnum(long vnum) {
-        return isAreaVnum(BigInteger.valueOf(vnum));
-    }
-
     private BigInteger getNewVnum(BigInteger vnum) {
         return vnum.add(vnumDifference);
     }
@@ -85,6 +74,13 @@ public class Renumberer {
      */
     public void renumber() {
         BigInteger vnum;
+
+        /* head */
+        {
+            Vnums vnums = area.getHead().getVnums();
+            vnums.setLvnum(getNewVnum(lvnum));
+            vnums.setUvnum(getNewVnum(uvnum));
+        }
 
         /* items */
         for (Object item : area.getObjects().getObject()) {
@@ -103,9 +99,9 @@ public class Renumberer {
                 mob.setVnum(getNewVnum(vnum));
             }
 
-//            if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
+            if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
                 renumberPrograms(mob.getPrograms());
-//            }
+            }
         }
 
         /* rooms */
@@ -138,12 +134,16 @@ public class Renumberer {
             }
         }
     }
+    
+    public List<String> getWarnings() {
+        return warnings;
+    }
 
     private void renumberPrograms(Programs progs) {
         for (Program prog : progs.getProgram()) {
-            //TODO: gather warnings about vnum changes and prepare them for returning somehow
             BufferedReader br = new BufferedReader(new StringReader(prog.getComlist()));
             String line;
+            int lineNo = 1;
             StringBuilder comlist = new StringBuilder();
             try {
                 while ((line = br.readLine()) != null) {
@@ -153,14 +153,25 @@ public class Renumberer {
                     BigInteger vnum;
                     while (m.find()) {
                         strVnum =  m.group().replaceFirst("^[mio]", "");
-                        System.out.println("prog vnum match: " + strVnum);
                         if (isAreaVnum(vnum = BigInteger.valueOf(Long.parseLong(strVnum)))) {
-                            line = line.replaceFirst(strVnum, getNewVnum(vnum).toString());
+                            BigInteger newVnum = getNewVnum(vnum);
+                            int offset = m.start();
+                            line = line.replaceFirst("\\b" + strVnum + "\\b", newVnum.toString());
+                            warnings.add("changed vnum: " + vnum + " to: " + newVnum + " in line: "
+                                    + lineNo + " at offset: " + offset);
                         }
                     }
                     comlist.append(line+"\n");
+                    lineNo++;
                 }
             } catch (IOException ignored) {
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (IOException ignored) {
+                }
             }
             prog.setComlist(comlist.toString());
         }

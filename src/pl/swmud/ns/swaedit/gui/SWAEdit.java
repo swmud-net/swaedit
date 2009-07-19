@@ -602,10 +602,17 @@ public class SWAEdit extends QMainWindow {
     
     @SuppressWarnings("unused")
     private void renumber(BigInteger newFirstVnum) {
-        new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_RELIABLE, resetsMap).renumber();
+        Renumberer r = new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_MUDPROGS, resetsMap); 
+        r.renumber();
         fillAll();
         setModified();
-        statusBar().showMessage("Area vnum range changed.", 5000);
+        List<String> warnings = r.getWarnings();
+        if (warnings.size() > 0) {
+            statusBar().showMessage("Area vnum range changed (with: " + warnings.size() + " warnings).", 5000);
+        } else {
+            statusBar().showMessage("Area vnum range changed.", 5000);
+        }
+        //TODO: present warnings to the user
     }
     
     private Short newShort(ObjectFactory of) {

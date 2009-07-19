@@ -22,9 +22,7 @@ public class RenumberWidget extends QWidget {
     private void on_vnumEdit_textChanged(String str) {
         try {
             vnum = BigInteger.valueOf(Long.parseLong(str));
-            if (vnum.compareTo(BigInteger.ZERO) == 1) {
-                ui.acceptButton.setEnabled(true);
-            }
+            ui.acceptButton.setEnabled(vnum.compareTo(BigInteger.ZERO) == 1);
         } catch (NumberFormatException e) {
             ui.acceptButton.setEnabled(false);
         }
