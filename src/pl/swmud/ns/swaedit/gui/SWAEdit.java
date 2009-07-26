@@ -49,6 +49,7 @@ import com.trolltech.qt.gui.*;
 
 public class SWAEdit extends QMainWindow {
     
+    public static final String FILE_ENCODING = "ISO-8859-2";
     public static final int MAX_RESET_ARGS = 5;
     
     static SWAEdit ref;
@@ -268,8 +269,12 @@ public class SWAEdit extends QMainWindow {
 
     @SuppressWarnings("unused")
     private void on_actionRenumber_triggered() {
+        if (area == null) {
+            QMessageBox.critical(null, "Renumber", "No Area. Create one first.");
+            return;
+        }
         RenumberWidget renumberWidget = new RenumberWidget();
-        renumberWidget.vnumSpecified.connect(this, "renumber(BigInteger)");
+        renumberWidget.paramsSpecified.connect(this, "renumber(BigInteger,Integer)");
         renumberWidget.show();
     }
 
@@ -601,18 +606,36 @@ public class SWAEdit extends QMainWindow {
     }
     
     @SuppressWarnings("unused")
-    private void renumber(BigInteger newFirstVnum) {
-        Renumberer r = new Renumberer(area, newFirstVnum, Renumberer.RENUMBER_MUDPROGS, resetsMap); 
+    private void renumber(BigInteger newFirstVnum, Integer optionsFlags) {
+        Renumberer r = new Renumberer(area, newFirstVnum, optionsFlags, resetsMap); 
         r.renumber();
         fillAll();
         setModified();
         List<String> warnings = r.getWarnings();
         if (warnings.size() > 0) {
             statusBar().showMessage("Area vnum range changed (with: " + warnings.size() + " warnings).", 5000);
+            if (currentFileName != null) {
+                String warningsName = currentFileName.replaceFirst("\\.xml$", "_renumberWarnings");
+                File f = null;
+                String zeros = null;
+                for (int i = 0; i < 100; i++) {
+                    if (i < 10) {
+                        zeros = "0";
+                    } else {
+                        zeros = "";
+                    }
+                    if (!(f = new File(warningsName+zeros + i + ".txt")).exists()) {
+                        break;
+                    }
+                }
+                if (!r.saveWarnings(f.getAbsolutePath())) {
+                    QMessageBox.warning(null, "Warnings not saved", "Renumber warnings could not be saved to file for some reason.");
+                }
+            }
+            new RenumberWarningsWidget(warnings).show();
         } else {
             statusBar().showMessage("Area vnum range changed.", 5000);
         }
-        //TODO: present warnings to the user
     }
     
     private Short newShort(ObjectFactory of) {
@@ -2839,6 +2862,7 @@ public class SWAEdit extends QMainWindow {
     
     private void resetAddWidget(QWidget w, ResetWrapper wrapper) {
         w.setObjectName(String.valueOf(wrapper.getCurrent()));
+        w.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose);
         resetLayouts.get(wrapper.getCurrentName()).addWidget(w);
         resetWidgets.put(wrapper.getCurrentName(), w);
     }

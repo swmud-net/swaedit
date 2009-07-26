@@ -1,7 +1,11 @@
 package pl.swmud.ns.swaedit.core;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -32,6 +36,19 @@ public class Renumberer {
      * Renumbers also numbers in programs' keyword and body.
      */
     public static final int RENUMBER_MUDPROGS = 1;
+    /**
+     * Program owner type used for warnings. In this case type is: item. 
+     */
+    private static String TYPE_ITEM = "item";
+    /**
+     * Program owner type used for warnings. In this case type is: mobile. 
+     */
+    private static String TYPE_MOBILE = "mobile";
+    /**
+     * Program owner type used for warnings. In this case type is: room. 
+     */
+    private static String TYPE_ROOM = "room";
+    
     private Area area;
     private int flags;
     HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap = new HashMap<String, pl.swmud.ns.swaedit.resets.Reset>();
@@ -40,10 +57,10 @@ public class Renumberer {
     private BigInteger vnumDifference;
     private List<String> warnings = new LinkedList<String>();
 
-    public Renumberer(Area area, BigInteger newFirstVnum, int flags,
+    public Renumberer(Area area, BigInteger newFirstVnum, Integer flags,
             HashMap<String, pl.swmud.ns.swaedit.resets.Reset> resetsMap) {
         this.area = area;
-        this.flags = flags;
+        this.flags = flags.intValue();
         this.resetsMap = resetsMap;
         lvnum = area.getHead().getVnums().getLvnum();
         uvnum = area.getHead().getVnums().getUvnum();
@@ -89,7 +106,7 @@ public class Renumberer {
             }
 
             if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
-                renumberPrograms(item.getPrograms());
+                renumberPrograms(TYPE_ITEM, item.getVnum(), item.getPrograms());
             }
         }
 
@@ -100,7 +117,7 @@ public class Renumberer {
             }
 
             if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
-                renumberPrograms(mob.getPrograms());
+                renumberPrograms(TYPE_MOBILE, mob.getVnum(), mob.getPrograms());
             }
         }
 
@@ -111,7 +128,7 @@ public class Renumberer {
             }
 
             if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
-                renumberPrograms(room.getPrograms());
+                renumberPrograms(TYPE_ROOM, room.getVnum(), room.getPrograms());
             }
         }
 
@@ -139,8 +156,10 @@ public class Renumberer {
         return warnings;
     }
 
-    private void renumberPrograms(Programs progs) {
+    private void renumberPrograms(String type, BigInteger ownerVnum, Programs progs) {
+        int progNo = 0;
         for (Program prog : progs.getProgram()) {
+            progNo++;
             BufferedReader br = new BufferedReader(new StringReader(prog.getComlist()));
             String line;
             int lineNo = 1;
@@ -157,8 +176,9 @@ public class Renumberer {
                             BigInteger newVnum = getNewVnum(vnum);
                             int offset = m.start();
                             line = line.replaceFirst("\\b" + strVnum + "\\b", newVnum.toString());
-                            warnings.add("changed vnum: " + vnum + " to: " + newVnum + " in line: "
-                                    + lineNo + " at offset: " + offset);
+                            warnings.add("changed " + type + "'s: "+ ownerVnum + " program's: "
+                                    + progNo + " vnum: " + vnum + " to: " + newVnum
+                                    + " in line: " + lineNo + " at offset: " + offset);
                         }
                     }
                     comlist.append(line+"\n");
@@ -193,5 +213,30 @@ public class Renumberer {
                 }
             }
         }
+    }
+    
+    public boolean saveWarnings(String path) {
+        BufferedWriter bw = null;
+        try {
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
+            for (String warning : warnings) {
+                bw.write(warning+System.getProperty("line.separator"));
+                bw.flush();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+        return true;
     }
 }

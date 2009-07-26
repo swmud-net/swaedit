@@ -94,6 +94,7 @@ public class ProgramsWidget extends QWidget{
         ui.wholePhraseCheckBox.setChecked(program.getArgs().trim().startsWith("p "));
         canEdit = true;
         modified = true;
+        enable(true);
     }
 
     @SuppressWarnings("unused")
@@ -107,6 +108,7 @@ public class ProgramsWidget extends QWidget{
             ui.programEdit.setFocus();
         }
         modified = true;
+        enable(true);
     }
     
     @SuppressWarnings("unused")

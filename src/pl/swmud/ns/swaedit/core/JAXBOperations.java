@@ -25,6 +25,7 @@ import com.trolltech.qt.core.QTextCodec;
 
 import pl.swmud.ns.swaedit.exits.Exits;
 import pl.swmud.ns.swaedit.flags.Flags;
+import pl.swmud.ns.swaedit.gui.SWAEdit;
 import pl.swmud.ns.swaedit.highlighter.Highlighter;
 import pl.swmud.ns.swaedit.itemtypes.Itemtypes;
 import pl.swmud.ns.swaedit.lastupdate.Lastupdate;
@@ -37,7 +38,6 @@ import pl.swmud.ns.swmud._1_0.area.Area;
 
 public final class JAXBOperations {
     
-    private static final String FILE_ENCODING = "ISO-8859-2";
     private static final long MAX_FILE_SIZE = 8388608; /* 8M */
 
     /* deletes &#13; entities (caret return) & manages encoding */
@@ -58,7 +58,7 @@ public final class JAXBOperations {
             else {
                 throw new IOException("cannot open file: "+path);
             }
-            String str = QTextCodec.codecForName(FILE_ENCODING).toUnicode(buf);
+            String str = QTextCodec.codecForName(SWAEdit.FILE_ENCODING).toUnicode(buf);
             str = str.replaceAll("&#13;", "");
             result = new InputSource(new StringReader(str));
         } catch (FileNotFoundException e) {
@@ -98,7 +98,7 @@ public final class JAXBOperations {
             Marshaller m = jc.createMarshaller();
             m.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(xsdPath)));
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-2");
+            m.setProperty(Marshaller.JAXB_ENCODING, SWAEdit.FILE_ENCODING);
             m.marshal(area, new FileOutputStream(xmlPath));
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -142,7 +142,7 @@ public final class JAXBOperations {
             Marshaller m = jc.createMarshaller();
             m.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(xsdPath)));
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-2");
+            m.setProperty(Marshaller.JAXB_ENCODING, SWAEdit.FILE_ENCODING);
             m.marshal(itemtypes, new FileOutputStream(xmlPath));
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -342,7 +342,7 @@ public final class JAXBOperations {
             Marshaller m = jc.createMarshaller();
             m.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(xsdPath)));
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-2");
+            m.setProperty(Marshaller.JAXB_ENCODING, SWAEdit.FILE_ENCODING);
             m.marshal(lastUpdate, new FileOutputStream(xmlPath));
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -409,7 +409,7 @@ public final class JAXBOperations {
             Marshaller m = jc.createMarshaller();
             m.setSchema(SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(xsdPath)));
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m.setProperty(Marshaller.JAXB_ENCODING, "ISO-8859-2");
+            m.setProperty(Marshaller.JAXB_ENCODING, SWAEdit.FILE_ENCODING);
             m.marshal(messages, new FileOutputStream(xmlPath));
         } catch (JAXBException e) {
             e.printStackTrace();
