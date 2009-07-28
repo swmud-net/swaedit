@@ -1,0 +1,34 @@
+<html>
+<head>
+<style type="text/css">
+span.option
+{
+	color: #0a0;
+}
+</style>
+</head>
+<body>
+First of all you are probably <b>not</b> the person who should use renumbering.
+Renumbering is for OLC builders and mud admins only. If you do not know what is
+OLC than it means you must <b>not</b> use renumbering.
+<br/>
+<br/>
+There are 2 types of renumbering. You can see them in the options section. The types:
+<ol>
+<li>
+<span class="option">reliable renumbering</span> renumbers everything reliable, which is everything
+except mud programs. This is because mud programs are hard to renumber automatically. User action
+is required after almost every renumber process.
+</li>
+<li>
+<span class="option">programs renumbering</span> renumbers everything that reliable renumbering does,
+but additionally renumbers mud programs. After renumbering these programs it displays warnings (if any)
+and saves them automatically into a file avoiding loss in this way.
+</ol>
+Regardless of the option used, you must check all of the mud programs. If you were using reliable renumbering you must
+renumber all programs manually. If the option used was programs renumbering you must check all of the programs
+and fix the ones with errors. Here, warnings can be helpful. Warnings are written to the file, which name is
+composed from area name and placed in the same directory as the area file. The name of this file is the area file
+name with stripped <code>.xml</code> extension and added <code>_renumberWarnings.txt</code> part. Assuming
+your area is named <code>coruscant.xml</code> the warnings file name would be: <code>coruscant_renumberWarnings.txt</code>. 
+</html>
