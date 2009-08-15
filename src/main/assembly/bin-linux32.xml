@@ -1,0 +1,21 @@
+<assembly>
+	<id>linux32-${project.version}</id>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<componentDescriptors>
+		<componentDescriptor>src/main/assembly/bin-main.xml
+		</componentDescriptor>
+	</componentDescriptors>
+	<fileSets>
+		<fileSet>
+			<directory>
+				${project.build.directory}/dependency/${qtjambi.lib.linux32}
+			</directory>
+			<includes>
+				<include>lib/**</include>
+			</includes>
+			<outputDirectory />
+		</fileSet>
+	</fileSets>
+</assembly>

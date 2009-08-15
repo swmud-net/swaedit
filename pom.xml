@@ -9,11 +9,24 @@
 	<description>Star Wars MUD Area Editor</description>
 	<url>http://sourceforge.net/projects/swaedit/
 	</url>
+	<properties>
+		<qtjambi.version>4.5.2_01</qtjambi.version>
+		<juic.juicPath>/usr/qt/qtjambi-4.5.0/bin/juic
+		</juic.juicPath>
+		<qtjambi.lib.linux32>qtjambi-linux32-lgpl
+		</qtjambi.lib.linux32>
+		<qtjambi.lib.linux64>qtjambi-linux64-lgpl
+		</qtjambi.lib.linux64>
+		<qtjambi.lib.win32>qtjambi-win32-lgpl
+		</qtjambi.lib.win32>
+		<qtjambi.lib.win64>qtjambi-win64-lgpl
+		</qtjambi.lib.win64>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.trolltech.qtjambi</groupId>
 			<artifactId>qtjambi</artifactId>
-			<version>4.5.0</version>
+			<version>${qtjambi.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -55,8 +68,6 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
-							<juicPath>/usr/qt/qtjambi-4.5.0/bin/juic
-							</juicPath>
 							<sourceDirectory>${basedir}/src/main/java
 							</sourceDirectory>
 						</configuration>
@@ -80,10 +91,44 @@
 								<artifactItem>
 									<groupId>com.trolltech.qtjambi</groupId>
 									<artifactId>qtjambi</artifactId>
-									<version>4.5.0</version>
-									<outputDirectory>${project.build.directory}
-									</outputDirectory>
+									<version>${qtjambi.version}</version>
 									<destFileName>qtjambi.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack-qtjambi-libs</id>
+						<phase>package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<inherited>false</inherited>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.trolltech.qtjambi</groupId>
+									<artifactId>${qtjambi.lib.linux32}
+									</artifactId>
+									<version>${qtjambi.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.trolltech.qtjambi</groupId>
+									<artifactId>${qtjambi.lib.linux64}
+									</artifactId>
+									<version>${qtjambi.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.trolltech.qtjambi</groupId>
+									<artifactId>${qtjambi.lib.win32}
+									</artifactId>
+									<version>${qtjambi.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.trolltech.qtjambi</groupId>
+									<artifactId>${qtjambi.lib.win64}
+									</artifactId>
+									<version>${qtjambi.version}</version>
 								</artifactItem>
 							</artifactItems>
 						</configuration>
@@ -105,8 +150,17 @@
 							<descriptors>
 								<descriptor>src/main/assembly/bin-all.xml
 								</descriptor>
+								<descriptor>src/main/assembly/bin-linux32.xml
+								</descriptor>
+								<descriptor>src/main/assembly/bin-linux64.xml
+								</descriptor>
+								<descriptor>src/main/assembly/bin-win32.xml
+								</descriptor>
+								<descriptor>src/main/assembly/bin-win64.xml
+								</descriptor>
 							</descriptors>
-							<finalName>${project.artifactId}-bin-all-${project.version}</finalName>
+							<finalName>${project.artifactId}-bin
+							</finalName>
 						</configuration>
 					</execution>
 				</executions>
