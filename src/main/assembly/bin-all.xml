@@ -1,0 +1,27 @@
+<assembly>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<fileSets>
+		<fileSet>
+			<directory>target/classes</directory>
+			<outputDirectory>bin</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}</directory>
+			<includes>
+				<include>LICENSE</include>
+				<include>data/**</include>
+				<include>schemas/**</include>
+				<include>images/**</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/src</directory>
+			<includes>
+				<include>qt_system_libs</include>
+			</includes>
+			<outputDirectory/>
+		</fileSet>
+	</fileSets>
+</assembly>
