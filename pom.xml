@@ -57,7 +57,7 @@
 			</plugin>
 			<plugin>
 				<groupId>pl.swmud.ns.qtjambi</groupId>
-				<artifactId>juic</artifactId>
+				<artifactId>juic-mvn-plugin</artifactId>
 				<version>1.0</version>
 				<executions>
 					<execution>
