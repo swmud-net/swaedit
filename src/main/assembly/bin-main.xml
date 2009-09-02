@@ -13,5 +13,12 @@
 				<include>images/**</include>
 			</includes>
 		</fileSet>
+		<fileSet>
+			<directory>target/dependency</directory>
+			<includes>
+				<include>qtjambi.jar</include>
+			</includes>
+			<outputDirectory>lib</outputDirectory>
+		</fileSet>
 	</fileSets>
 </component>

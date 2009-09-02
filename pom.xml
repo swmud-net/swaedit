@@ -11,8 +11,6 @@
 	</url>
 	<properties>
 		<qtjambi.version>4.5.2_01</qtjambi.version>
-		<juic.juicPath>/usr/qt/qtjambi-4.5.0/bin/juic
-		</juic.juicPath>
 		<qtjambi.lib.linux32>qtjambi-linux32-lgpl
 		</qtjambi.lib.linux32>
 		<qtjambi.lib.linux64>qtjambi-linux64-lgpl
