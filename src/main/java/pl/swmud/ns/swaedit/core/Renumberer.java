@@ -24,6 +24,7 @@ import pl.swmud.ns.swmud._1_0.area.Programs.Program;
 import pl.swmud.ns.swmud._1_0.area.Repairs.Repair;
 import pl.swmud.ns.swmud._1_0.area.Resets.Reset;
 import pl.swmud.ns.swmud._1_0.area.Rooms.Room;
+import pl.swmud.ns.swmud._1_0.area.Rooms.Room.Exits.Exit;
 import pl.swmud.ns.swmud._1_0.area.Shops.Shop;
 
 public class Renumberer {
@@ -126,6 +127,12 @@ public class Renumberer {
             if (isAreaVnum(vnum = room.getVnum())) {
                 room.setVnum(getNewVnum(vnum));
             }
+            
+            for (Exit exit : room.getExits().getExit()) {
+                if (isAreaVnum(vnum = exit.getVnum())) {
+                    exit.setVnum(getNewVnum(vnum));
+                }
+            }
 
             if ((flags & RENUMBER_MUDPROGS) == RENUMBER_MUDPROGS) {
                 renumberPrograms(TYPE_ROOM, room.getVnum(), room.getPrograms());
@@ -155,7 +162,7 @@ public class Renumberer {
     public List<String> getWarnings() {
         return warnings;
     }
-
+    
     private void renumberPrograms(String type, BigInteger ownerVnum, Programs progs) {
         int progNo = 0;
         for (Program prog : progs.getProgram()) {
