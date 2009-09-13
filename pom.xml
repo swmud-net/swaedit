@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pl.swmud.ns.swaedit</groupId>
 	<artifactId>swaedit</artifactId>
-	<version>0.9.1</version>
+	<version>${swaedit.version}</version>
 	<packaging>pom</packaging>
 	<name>swaedit</name>
 	<description>Star Wars MUD Area Editor</description>
