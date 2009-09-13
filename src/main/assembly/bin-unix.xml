@@ -1,0 +1,12 @@
+<component>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<outputDirectory/>
+			<includes>
+				<include>*.sh</include>
+			</includes>
+			<fileMode>700</fileMode>
+		</fileSet>
+	</fileSets>
+</component>

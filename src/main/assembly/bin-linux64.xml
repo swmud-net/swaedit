@@ -6,6 +6,8 @@
 	<componentDescriptors>
 		<componentDescriptor>src/main/assembly/bin-main.xml
 		</componentDescriptor>
+		<componentDescriptor>src/main/assembly/bin-unix.xml
+		</componentDescriptor>
 	</componentDescriptors>
 	<fileSets>
 		<fileSet>

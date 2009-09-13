@@ -1,0 +1,11 @@
+<component>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<outputDirectory />
+			<includes>
+				<include>*.bat</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</component>
