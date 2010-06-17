@@ -1765,9 +1765,9 @@ public class SWAEdit extends QMainWindow {
     /* fills also some other constants */
     private void fillMobileSex() {
         ui.mobSexComboBox.clear();
-        ui.mobSexComboBox.addItem("male", 0);
-        ui.mobSexComboBox.addItem("female", 1);
-        ui.mobSexComboBox.addItem("neutral", 2);
+        ui.mobSexComboBox.addItem("neutral", 0);
+        ui.mobSexComboBox.addItem("male", 1);
+        ui.mobSexComboBox.addItem("female", 2);
         
         ui.mobRaceComboBox.clear();
         for (JAXBElement<String> jxbe : races.getName()) {
