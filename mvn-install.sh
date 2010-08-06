@@ -18,13 +18,13 @@ do
 	if [ -d $i ]; then
 		echo $i
 		cd $i
-		aid=`basename \`pwd\``
+		aid=`basename \`pwd\` |sed "s/-$version//"`
 		rm -rf artifact
 		mkdir -p artifact/lib
 
 		cp {lib,bin}/libstdc++.{so,dll}* artifact/lib/
-		cp {lib,bin}/*QtCore.{so,dll}* artifact/lib/
-		cp {lib,bin}/*QtGui.{so,dll}* artifact/lib/
+		cp {lib,bin}/*QtCore4.{so,dll}* artifact/lib/
+		cp {lib,bin}/*QtGui4.{so,dll}* artifact/lib/
 		cp {lib,bin}/*qtjambi.{so,dll} artifact/lib/
 		cp {lib,bin}/*com_trolltech_qt_core.{so,dll}* artifact/lib/
 		cp {lib,bin}/*com_trolltech_qt_gui.{so,dll}* artifact/lib/
