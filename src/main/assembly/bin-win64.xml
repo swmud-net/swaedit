@@ -19,5 +19,14 @@
 			</includes>
 			<outputDirectory />
 		</fileSet>
+		<fileSet>
+			<directory>
+				${project.build.directory}/dependency/${jogl.lib.win64}
+			</directory>
+			<includes>
+				<include>lib/**</include>
+			</includes>
+			<outputDirectory />
+		</fileSet>
 	</fileSets>
 </assembly>

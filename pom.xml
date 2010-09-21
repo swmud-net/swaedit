@@ -11,20 +11,46 @@
 	</url>
 	<properties>
 		<qtjambi.version>4.5.2_01</qtjambi.version>
-		<qtjambi.lib.linux32>qtjambi-linux32-lgpl
-		</qtjambi.lib.linux32>
-		<qtjambi.lib.linux64>qtjambi-linux64-lgpl
-		</qtjambi.lib.linux64>
-		<qtjambi.lib.win32>qtjambi-win32-lgpl
-		</qtjambi.lib.win32>
-		<qtjambi.lib.win64>qtjambi-win64-lgpl
-		</qtjambi.lib.win64>
+		<qtjambi.lib.linux32>qtjambi-linux32-lgpl</qtjambi.lib.linux32>
+		<qtjambi.lib.linux64>qtjambi-linux64-lgpl</qtjambi.lib.linux64>
+		<qtjambi.lib.win32>qtjambi-win32-lgpl</qtjambi.lib.win32>
+		<qtjambi.lib.win64>qtjambi-win64-lgpl</qtjambi.lib.win64>
+		<jogl.version>2.0-pre-20100611</jogl.version>
+		<jogl.lib.linux32>jogl-linux-i586</jogl.lib.linux32>
+		<jogl.lib.linux64>jogl-linux-amd64</jogl.lib.linux64>
+		<jogl.lib.win32>jogl-windows-i586</jogl.lib.win32>
+		<jogl.lib.win64>jogl-windows-amd64</jogl.lib.win64>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.trolltech.qtjambi</groupId>
 			<artifactId>qtjambi</artifactId>
 			<version>${qtjambi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>fontbox</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jogamp.jogl</groupId>
+			<artifactId>gluegen-rt</artifactId>
+			<version>${jogl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jogamp.jogl</groupId>
+			<artifactId>jogl.all-noawt</artifactId>
+			<version>${jogl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jogamp.jogl</groupId>
+			<artifactId>nativewindow.all-noawt</artifactId>
+			<version>${jogl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jogamp.jogl</groupId>
+			<artifactId>newt.all-noawt</artifactId>
+			<version>${jogl.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -66,15 +92,13 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
-							<sourceDirectory>${basedir}/src/main/java
-							</sourceDirectory>
+							<sourceDirectory>${basedir}/src/main/java</sourceDirectory>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>maven-dependency-plugin
-				</artifactId>
+				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.1</version>
 				<executions>
 					<execution>
@@ -92,6 +116,36 @@
 									<version>${qtjambi.version}</version>
 									<destFileName>qtjambi.jar</destFileName>
 								</artifactItem>
+								<artifactItem>
+									<groupId>org.apache.pdfbox</groupId>
+									<artifactId>fontbox</artifactId>
+									<version>1.2.1</version>
+									<destFileName>fontbox.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>gluegen-rt</artifactId>
+									<version>${jogl.version}</version>
+									<destFileName>gluegen-rt.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>jogl.all-noawt</artifactId>
+									<version>${jogl.version}</version>
+									<destFileName>jogl.all-noawt.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>nativewindow.all-noawt</artifactId>
+									<version>${jogl.version}</version>
+									<destFileName>nativewindow.all-noawt.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>newt.all-noawt</artifactId>
+									<version>${jogl.version}</version>
+									<destFileName>newt.all-noawt.jar</destFileName>
+								</artifactItem>
 							</artifactItems>
 						</configuration>
 					</execution>
@@ -106,27 +160,43 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>com.trolltech.qtjambi</groupId>
-									<artifactId>${qtjambi.lib.linux32}
-									</artifactId>
+									<artifactId>${qtjambi.lib.linux32}</artifactId>
 									<version>${qtjambi.version}</version>
 								</artifactItem>
 								<artifactItem>
 									<groupId>com.trolltech.qtjambi</groupId>
-									<artifactId>${qtjambi.lib.linux64}
-									</artifactId>
+									<artifactId>${qtjambi.lib.linux64}</artifactId>
 									<version>${qtjambi.version}</version>
 								</artifactItem>
 								<artifactItem>
 									<groupId>com.trolltech.qtjambi</groupId>
-									<artifactId>${qtjambi.lib.win32}
-									</artifactId>
+									<artifactId>${qtjambi.lib.win32}</artifactId>
 									<version>${qtjambi.version}</version>
 								</artifactItem>
 								<artifactItem>
 									<groupId>com.trolltech.qtjambi</groupId>
-									<artifactId>${qtjambi.lib.win64}
-									</artifactId>
+									<artifactId>${qtjambi.lib.win64}</artifactId>
 									<version>${qtjambi.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>${jogl.lib.linux32}</artifactId>
+									<version>${jogl.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>${jogl.lib.linux64}</artifactId>
+									<version>${jogl.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>${jogl.lib.win32}</artifactId>
+									<version>${jogl.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>com.jogamp.jogl</groupId>
+									<artifactId>${jogl.lib.win64}</artifactId>
+									<version>${jogl.version}</version>
 								</artifactItem>
 							</artifactItems>
 						</configuration>
@@ -146,19 +216,13 @@
 						<inherited>false</inherited>
 						<configuration>
 							<descriptors>
-								<descriptor>src/main/assembly/bin-all.xml
-								</descriptor>
-								<descriptor>src/main/assembly/bin-linux32.xml
-								</descriptor>
-								<descriptor>src/main/assembly/bin-linux64.xml
-								</descriptor>
-								<descriptor>src/main/assembly/bin-win32.xml
-								</descriptor>
-								<descriptor>src/main/assembly/bin-win64.xml
-								</descriptor>
+								<descriptor>src/main/assembly/bin-all.xml</descriptor>
+								<descriptor>src/main/assembly/bin-linux32.xml</descriptor>
+								<descriptor>src/main/assembly/bin-linux64.xml</descriptor>
+								<descriptor>src/main/assembly/bin-win32.xml</descriptor>
+								<descriptor>src/main/assembly/bin-win64.xml</descriptor>
 							</descriptors>
-							<finalName>${project.artifactId}-bin
-							</finalName>
+							<finalName>${project.artifactId}-bin</finalName>
 						</configuration>
 					</execution>
 				</executions>

@@ -22,12 +22,23 @@ import pl.swmud.ns.swaedit.exits.Exits;
 import pl.swmud.ns.swaedit.flags.Flag;
 import pl.swmud.ns.swaedit.flags.Flags;
 import pl.swmud.ns.swaedit.highlighter.Highlighter;
-import pl.swmud.ns.swaedit.itemtypes.*;
+import pl.swmud.ns.swaedit.itemtypes.Itemtype;
+import pl.swmud.ns.swaedit.itemtypes.Itemtypes;
+import pl.swmud.ns.swaedit.itemtypes.Subvalue;
+import pl.swmud.ns.swaedit.itemtypes.Value;
+import pl.swmud.ns.swaedit.map.Mapper;
 import pl.swmud.ns.swaedit.names.Names;
 import pl.swmud.ns.swaedit.types.Type;
 import pl.swmud.ns.swaedit.types.Types;
-import pl.swmud.ns.swmud._1_0.area.*;
+import pl.swmud.ns.swmud._1_0.area.Area;
+import pl.swmud.ns.swmud._1_0.area.Head;
 import pl.swmud.ns.swmud._1_0.area.ObjectFactory;
+import pl.swmud.ns.swmud._1_0.area.Sectiona;
+import pl.swmud.ns.swmud._1_0.area.Sectionr;
+import pl.swmud.ns.swmud._1_0.area.Sections;
+import pl.swmud.ns.swmud._1_0.area.Sectiont;
+import pl.swmud.ns.swmud._1_0.area.Sectionv;
+import pl.swmud.ns.swmud._1_0.area.Sectionx;
 import pl.swmud.ns.swmud._1_0.area.Short;
 import pl.swmud.ns.swmud._1_0.area.Mobiles.Mobile;
 import pl.swmud.ns.swmud._1_0.area.Objects.Object;
@@ -36,7 +47,6 @@ import pl.swmud.ns.swmud._1_0.area.Resets.Reset;
 import pl.swmud.ns.swmud._1_0.area.Rooms.Room;
 import pl.swmud.ns.swmud._1_0.area.Rooms.Room.Exits.Exit;
 import pl.swmud.ns.swmud._1_0.area.Shops.Shop;
-import pl.swmud.ns.swaedit.gui.Ui_SWAEdit;
 
 import com.trolltech.qt.core.QAbstractEventDispatcher;
 import com.trolltech.qt.core.QEventLoop;
@@ -45,7 +55,26 @@ import com.trolltech.qt.core.QPoint;
 import com.trolltech.qt.core.QRect;
 import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.Qt;
-import com.trolltech.qt.gui.*;
+import com.trolltech.qt.gui.QAbstractButton;
+import com.trolltech.qt.gui.QAbstractSpinBox;
+import com.trolltech.qt.gui.QAction;
+import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QCloseEvent;
+import com.trolltech.qt.gui.QComboBox;
+import com.trolltech.qt.gui.QDialog;
+import com.trolltech.qt.gui.QFileDialog;
+import com.trolltech.qt.gui.QHBoxLayout;
+import com.trolltech.qt.gui.QIcon;
+import com.trolltech.qt.gui.QLabel;
+import com.trolltech.qt.gui.QLineEdit;
+import com.trolltech.qt.gui.QMainWindow;
+import com.trolltech.qt.gui.QMenu;
+import com.trolltech.qt.gui.QMessageBox;
+import com.trolltech.qt.gui.QSpinBox;
+import com.trolltech.qt.gui.QSystemTrayIcon;
+import com.trolltech.qt.gui.QTextBrowser;
+import com.trolltech.qt.gui.QTextEdit;
+import com.trolltech.qt.gui.QWidget;
 
 public class SWAEdit extends QMainWindow {
     
@@ -111,7 +140,7 @@ public class SWAEdit extends QMainWindow {
         QApplication.initialize(args);
         
         QApplication.setWindowIcon(new QIcon("images/icon.png"));
-        new SWAEdit();
+        new SWAEdit().showNow();
         new WelcomeScreen().showNow();
 
         QApplication.exec();
@@ -154,6 +183,16 @@ public class SWAEdit extends QMainWindow {
         setSystemTray();
         backupTimer.timeout.connect(this, "timerBackup()");
         modified = false;
+        
+        //FIXME: temporary for map testing - remove afterwards
+//        {
+//            String fileName = "/root/workspace/swaedit/quarren.are.xml";
+//            area = JAXBOperations.unmarshallArea(fileName);
+//            currentFileName = fileName;
+//            fillAll();
+//            setNotModified();
+//            on_actionShow_Map_triggered();
+//        }
     }
     
     public void showNow() {
@@ -161,6 +200,7 @@ public class SWAEdit extends QMainWindow {
          * because sysTray.geometry() is required here */
         processEvents();
         QRect g = sysTray.geometry();
+        /* FIXME: uncomment the follofing line */
         new FileServer(new QPoint(g.x()+g.width()/2,g.y()+g.height()/2));
     }
     
@@ -309,6 +349,17 @@ public class SWAEdit extends QMainWindow {
             setModified();
             statusBar().showMessage("New room created.", 5000);
         }
+    }
+
+    @SuppressWarnings("unused")
+    private void on_actionShow_Map_triggered() {
+        if (area == null) {
+            QMessageBox.critical(null, "Show Map", "No Area. Create one first.");
+            return;
+        }
+        Mapper mapper = new Mapper(area);
+        mapper.makeMap();
+        statusBar().showMessage("Map prepared.", 5000);
     }
 
     private void on_actionCreate_New_Reset_triggered() {

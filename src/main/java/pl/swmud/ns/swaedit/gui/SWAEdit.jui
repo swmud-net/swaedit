@@ -7968,6 +7968,8 @@
     </property>
     <addaction name="actionCreate_New_Room"/>
     <addaction name="actionDelete_Current_Room"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_Map"/>
    </widget>
    <widget class="QMenu" name="menuReset">
     <property name="title">
@@ -8141,6 +8143,11 @@
   <action name="actionRenumber">
    <property name="text">
     <string>Renumber</string>
+   </property>
+  </action>
+  <action name="actionShow_Map">
+   <property name="text">
+    <string>Show 3D Map</string>
    </property>
   </action>
  </widget>
