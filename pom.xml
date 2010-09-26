@@ -28,11 +28,6 @@
 			<version>${qtjambi.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.pdfbox</groupId>
-			<artifactId>fontbox</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
 			<groupId>com.jogamp.jogl</groupId>
 			<artifactId>gluegen-rt</artifactId>
 			<version>${jogl.version}</version>
@@ -115,12 +110,6 @@
 									<artifactId>qtjambi</artifactId>
 									<version>${qtjambi.version}</version>
 									<destFileName>qtjambi.jar</destFileName>
-								</artifactItem>
-								<artifactItem>
-									<groupId>org.apache.pdfbox</groupId>
-									<artifactId>fontbox</artifactId>
-									<version>1.2.1</version>
-									<destFileName>fontbox.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
 									<groupId>com.jogamp.jogl</groupId>

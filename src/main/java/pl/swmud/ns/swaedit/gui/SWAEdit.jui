@@ -8147,7 +8147,7 @@
   </action>
   <action name="actionShow_Map">
    <property name="text">
-    <string>Show 3D Map</string>
+    <string>Show Map</string>
    </property>
   </action>
  </widget>

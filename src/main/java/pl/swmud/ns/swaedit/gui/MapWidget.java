@@ -1,5 +1,10 @@
 package pl.swmud.ns.swaedit.gui;
 
+
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.IntBuffer;
 import java.util.List;
@@ -14,6 +19,7 @@ import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
 import pl.swmud.ns.swaedit.map.ExitWrapper;
+import pl.swmud.ns.swaedit.map.GLFont;
 import pl.swmud.ns.swaedit.map.MapRoom;
 import pl.swmud.ns.swaedit.map.RoomCoords;
 import pl.swmud.ns.swaedit.map.RoomSpread;
@@ -68,7 +74,13 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 	private boolean drawDistantExits = false;
 
-	private final Signal0 s0 = new Signal0();
+	private GLFont glFont;
+	private float mx, my;
+	boolean drawCross = false;
+	boolean showHelp = false;
+
+
+//	private final Signal0 s0 = new Signal0();
 
 	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands) {
 		this.islandRooms = islandRooms;
@@ -82,13 +94,15 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		caps.setAlphaBits(8);
 
 		window = GLWindow.create(caps);
+//		window.enablePerfLog(true);
 		window.setSize(800, 600);
 		window.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowDestroyNotify(WindowEvent e) {
 				super.windowDestroyNotify(e);
-				s0.connect(SWAEdit.ref, "close()");
-//				s0.emit();
+//				System.exit(0);
+//				s0.connect(SWAEdit.ref, "close()");
+				// s0.emit();
 			}
 		});
 		window.addMouseListener(new MouseAdapter() {
@@ -130,6 +144,13 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 					}
 					oldy = py;
 				}
+			}
+			
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				float[] ret = translateMouse(e.getX(), e.getY(), w, h);
+				mx = ret[0];
+				my = ret[1];
 			}
 		});
 
@@ -180,9 +201,23 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			selected = -1;
 		}
 	}
-	
+
 	public void multisampling() {
 		multisample = !multisample;
+	}
+	
+	public void drawCross() {
+		drawCross = !drawCross;
+	}
+	
+	public void center() {
+		dz = -31;
+		rot = dx = dy = angle = 0;
+		oldx = oldy = 0;
+	}
+	
+	public void showHelp() {
+		showHelp = !showHelp;
 	}
 
 	public void show(int x, int y) {
@@ -221,17 +256,18 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		}.getMiddle();
 	}
 
-	@SuppressWarnings("unused")
 	private float[] translateMouse(int x, int y, int w, int h) {
 		float[] p = new float[2];
 
-		p[0] = (2.0f * x - w) / h;
-		p[1] = 1.0f - (2.0f * y) / h;
+//		p[0] = (2.0f * x - w) / h;
+//		p[1] = 1.0f - (2.0f * y) / h;
+
+		p[0] = x*2.0f/w;
+		p[1] = -y*2.0f/h;
 
 		return p;
-
 	}
-
+	
 	private void select(int cx, int cy) {
 		int[] viewport = new int[4];
 		IntBuffer selectBuf = Buffers.newDirectIntBuffer(selectBufLen);
@@ -294,6 +330,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 		gl.glLoadIdentity();
 
+		
 		gl.glPushMatrix();
 		drawIslands();
 		gl.glPopMatrix();
@@ -302,26 +339,72 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		drawWindRose();
 		gl.glPopMatrix();
 
-		// gl.glPushMatrix();
-		// gl.glTranslatef(0, 0, -1);
-		// gl.glColor3f(1, 1, 1);
-		// gl.glBegin(GL2.GL_LINES);
-		// gl.glVertex3f(-1, 0, 0);
-		// gl.glVertex3f(1, 0, 0);
-		// gl.glVertex3f(0, -1, 0);
-		// gl.glVertex3f(0, 1, 0);
-		// gl.glEnd();
-		// gl.glPopMatrix();
+		if (drawCross) {
+			gl.glPushMatrix();
+			gl.glTranslatef(0, 0, -1);
+			gl.glColor3f(1, 1, 1);
+			gl.glBegin(GL2.GL_LINES);
+			gl.glVertex3f(-1, 0, 0);
+			gl.glVertex3f(1, 0, 0);
+			gl.glVertex3f(0, -1, 0);
+			gl.glVertex3f(0, 1, 0);
+			gl.glEnd();
+			gl.glPopMatrix();
+		}		
 
+		if (!selection && (selected >= 0 && selectedVnum != null || showHelp)) {
+			gl.glPushMatrix();
+			gl.glPushAttrib(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+			setOrthoOn();
+			
+			if (!selection && selected >= 0 && selectedVnum != null) {
+				drawText("vnum selected: " + selectedVnum.toString(), -1.f, -.98f);
+            }
+			
+			if (showHelp) {
+				drawHelp();
+            }
+
+			setOrthoOff();
+			gl.glPopAttrib();
+			gl.glPopMatrix();
+		}
+		
 		gl.glFlush();
 
 		cleanDrawnMark();
 	}
+	
+	private void drawHelp() {
+		gl.glPushMatrix();
+		
+		drawText("d     - toggle distant exits", 1.f, .98f);
+		drawText("m     - toggle multisampling", 1.f, .94f);
+		drawText("space - toggle rotation", 1.f, .90f);
+		drawText("h     - toggle this help text",1.f,  .86f);
+		drawText("k     - toggle cross", 1.f, .82f);
+		drawText("c     - reset to center", 1.f, .78f);
 
+		gl.glPopMatrix();
+	}
+	
+	private void drawText(String txt, float xShift, float yShift) {
+		gl.glPushMatrix();
+		float len = txt.length();
+		float fScale = .03f;
+		float tLen = (len - .5f * len) * fScale;
+		tLen = 1.f - tLen - .02f;
+		gl.glTranslatef(xShift * -tLen, yShift, 0);
+		gl.glScalef(fScale, fScale, 1.f);
+		gl.glColor3f(1, 1, 1);
+		glFont.print(0, 0, txt);
+		gl.glPopMatrix();
+	}
+	
 	private float[] getLeftBottom(float near) {
 		float[] lb = new float[2];
 		lb[1] = (float) Math.tan(fov * Math.PI / 360.0) * near;
-		lb[0] = aspect * (lb[1]);
+		lb[0] = aspect * lb[1];
 
 		return lb;
 	}
@@ -345,10 +428,10 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 					if (reportSelected && !selection) {
 						reportSelected = false;
 						selectedVnum = mr.getRoom().getVnum();
-						System.out.println("selected vnum: " + selectedVnum + ", " + mr.getCoords());
-						for (ExitWrapper ex : mr.getMapRooms().keySet()) {
-							System.out.println("rev exit: " + ex.getVnum() + " twoWay: " + ex.isTwoWay());
-						}
+//						System.out.println("selected vnum: " + selectedVnum + ", " + mr.getCoords());
+//						for (ExitWrapper ex : mr.getMapRooms().keySet()) {
+//							System.out.println("rev exit: " + ex.getVnum() + " twoWay: " + ex.isTwoWay());
+//						}
 					}
 				} else {
 					if (i == 1) {
@@ -363,7 +446,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 				gl.glColor4f(0, 0.7f, 0, alpha);
 				drawExits(mr);
 				gl.glPopMatrix();
-            }
+			}
 		}
 	}
 
@@ -440,7 +523,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 					break;
 
 				default: /* somewhere: 10 */
-					throw new RuntimeException("virtual exit found!");
+					System.err.println("virtual exits not yet supported!");
 					/* TODO: find a way to draw virtual exit */
 				}
 
@@ -569,15 +652,34 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		glu = GLU.createGLU(gl);
 
 		gl.glEnable(GL2.GL_DEPTH_TEST);
+		gl.glDepthFunc(GL2.GL_LEQUAL);
 		gl.glEnable(GL2.GL_BLEND);
 		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
 		gl.glEnable(GL2.GL_MULTISAMPLE);
-
-//		int[] buf = new int[1];
-//		gl.glGetIntegerv(GL2.GL_SAMPLE_BUFFERS, buf, 0);
-//		System.out.println("sampleBuffers: " + buf[0]);
-//		gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
-//		System.out.println("samples:" + buf[0]);
+		gl.glEnable(GL2.GL_TEXTURE_2D);
+		gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
+		gl.glShadeModel(GL2.GL_SMOOTH);
+		
+		// int[] buf = new int[1];
+		// gl.glGetIntegerv(GL2.GL_SAMPLE_BUFFERS, buf, 0);
+		// System.out.println("sampleBuffers: " + buf[0]);
+		// gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
+		// System.out.println("samples:" + buf[0]);
+		
+		Font f = null;
+		try {
+	        f = Font.createFont(Font.TRUETYPE_FONT, new File("font.ttf"));
+	        f = f.deriveFont(0, 12);
+        } catch (Exception e) {
+	        e.printStackTrace();
+	        f = new Font(Font.SERIF, 0, 12);
+        }
+        f = new Font(Font.SERIF, 0, 16);
+        if (f != null) {
+			glFont = new GLFont(f, gl, 0, 0);
+        } else {
+        	System.err.println("font is null!");
+        }
 	}
 
 	public void reshape(GLAutoDrawable d, int x, int y, int w, int h) {
@@ -598,5 +700,24 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		gl.glLoadIdentity();
 
 		glu.gluPerspective(fov, aspect, near, far);
+	}
+	
+	public void setOrthoOn() {
+		gl.glMatrixMode(GL2.GL_PROJECTION);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		gl.glOrtho(0, 0, 0, 0, -1, 1);
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		gl.glDisable(GL2.GL_DEPTH_TEST);
+	}
+
+	public void setOrthoOff() {
+		gl.glMatrixMode(GL2.GL_PROJECTION);
+		gl.glPopMatrix();
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
+		gl.glPopMatrix();
+		gl.glEnable(GL2.GL_DEPTH_TEST);
 	}
 }

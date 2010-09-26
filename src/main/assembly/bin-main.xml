@@ -21,7 +21,6 @@
 				<include>jogl.all-noawt.jar</include>
 				<include>nativewindow.all-noawt.jar</include>
 				<include>newt.all-noawt.jar</include>
-				<include>fontbox.jar</include>
 			</includes>
 			<outputDirectory>lib</outputDirectory>
 		</fileSet>

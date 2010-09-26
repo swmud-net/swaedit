@@ -25,6 +25,12 @@ public class MapKeyHandler extends KeyAdapter {
 			minion.drawDistantExits();
 		} else if (kc == 'm' || kc == KeyEvent.VK_M) {
 			minion.multisampling();
+		} else if (kc == 'k' || kc == KeyEvent.VK_K) {
+			minion.drawCross();
+		} else if (kc == 'c' || kc == KeyEvent.VK_C) {
+			minion.center();
+		} else if (kc == 'h' || kc == KeyEvent.VK_H) {
+			minion.showHelp();
 		}
 	}
 
@@ -58,6 +64,12 @@ public class MapKeyHandler extends KeyAdapter {
 		void decLayer();
 		
 		void multisampling();
+		
+		void drawCross();
+		
+		void center();
+		
+		void showHelp();
 	}
 
 }

@@ -182,7 +182,7 @@ public class Mapper {
 			break;
 
 		default: /* somewhere: 10 */
-			throw new RuntimeException("wirtual exit!!!");
+			System.err.println("virtual exits not yet supported!");
 			/* FIXME: find a way to mark that the exit is virtual */
 		}
 
