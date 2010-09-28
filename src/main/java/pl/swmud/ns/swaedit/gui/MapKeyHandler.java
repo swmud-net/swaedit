@@ -31,6 +31,8 @@ public class MapKeyHandler extends KeyAdapter {
 			minion.center();
 		} else if (kc == 'h' || kc == KeyEvent.VK_H) {
 			minion.showHelp();
+		} else if (kc == 'f' || kc == KeyEvent.VK_F) {
+			minion.showFullscreen();
 		}
 	}
 
@@ -70,6 +72,8 @@ public class MapKeyHandler extends KeyAdapter {
 		void center();
 		
 		void showHelp();
+
+		void showFullscreen();
 	}
 
 }

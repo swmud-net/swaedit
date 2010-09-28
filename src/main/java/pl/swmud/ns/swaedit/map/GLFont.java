@@ -354,7 +354,7 @@ public class GLFont {
 		Color fg = fgColor == null ? new Color(1, 1, 1, 1) : (fgColor.length == 3 ? new Color(fgColor[0], fgColor[1],
 		        fgColor[2], 1) : new Color(fgColor[0], fgColor[1], fgColor[2], fgColor[3]));
 		boolean isAntiAliased = true;
-		boolean usesFractionalMetrics = false;
+		boolean usesFractionalMetrics = true;
 
 		// get size of texture image neaded to hold 10x10 character grid
 		textureSize = getPowerOfTwoBiggerThan(fontSize * 10);
@@ -427,7 +427,7 @@ public class GLFont {
 	 */
 	public int getFontSize() {
 		boolean isAntiAliased = true;
-		boolean usesFractionalMetrics = false;
+		boolean usesFractionalMetrics = true;
 
 		// just a dummy image so we can get a graphics context
 		BufferedImage image = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
