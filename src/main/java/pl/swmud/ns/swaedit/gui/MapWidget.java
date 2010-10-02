@@ -3,6 +3,7 @@ package pl.swmud.ns.swaedit.gui;
 import java.awt.Font;
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.trolltech.qt.QSignalEmitter;
+import com.trolltech.qt.gui.QImage;
+import com.trolltech.qt.gui.QImage.Format;
 
 public class MapWidget extends QSignalEmitter implements GLEventListener, MapKeyHandler.Minion {
 	private int selectBufLen;
@@ -45,8 +48,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 	private int cx, cy;
 	private int selected = -1;
-	private boolean reportSelected = false;
-	private boolean selection = false;
+	private boolean reportSelected;
+	private boolean selection;
 	private BigInteger selectedVnum;
 
 	private int w, h;
@@ -56,13 +59,14 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private float far = 100.0f;
 
 	private boolean multisample = true;
-	private float alpha = 0.5f;
+	private static final float ALPHA = .5f;
 
 	private float dz = -31;
 	private float rot = 0;
 	private float angle;
 	private float dx, dy;
 	private double oldx, oldy;
+	private float rx, ry, rz;
 
 	private SortedMap<Integer, List<MapRoom>> islandRooms;
 	private float xMiddle, yMiddle;
@@ -71,14 +75,30 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private int currentLayer = 0;
 	private int maxLayer;
 
-	private boolean drawDistantExits = false;
+	private boolean drawDistantExits;
 
 	private GLFont glFont;
-	private float mx, my;
-	private boolean drawCross = false;
-	private boolean showHelp = false;
+
+	private int mx, my;
+	private int hovered = -1;
+	private boolean reportHovered;
+	private boolean hovering;
+	private BigInteger hoveredVnum;
+
+	private boolean drawCross;
+	private boolean showHelp;
 	private int showIslandsLayers;
 	private int fulscreenWidth, fulscreenHeight;
+
+	private int bpp = 4; /* bytes per pixel */
+
+	private boolean readPixels;
+	private boolean transparentShot;
+	private String screenShotPath;
+	private File screenShotDir;
+	private String screenShotBareFileName;
+	private long screenShotCnt;
+	private static final String USER_HOME = System.getProperty("user.home");
 
 	private static final List<String> MENU_KEYS = new ArrayList<String>() {
 		private static final long serialVersionUID = 1041444819386431807L;
@@ -94,6 +114,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			add("down  - previous island");
 			add("right - next layer");
 			add("left  - previous layer");
+			add("F12   - take a screenshot");
+			add("F11   - take a transparent screenshot");
 		}
 	};
 
@@ -103,6 +125,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		this.islandRooms = islandRooms;
 		this.maxIslands = maxIslands;
 		setupIsland(currentIsland);
+		setScreenShotParent();
 
 		GLProfile profile = GLProfile.get(GLProfile.GL2);
 		GLCapabilities caps = new GLCapabilities(profile);
@@ -117,7 +140,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			@Override
 			public void windowDestroyNotify(WindowEvent e) {
 				super.windowDestroyNotify(e);
-				// System.exit(0);
+				System.exit(0);
 				// s0.connect(SWAEdit.ref, "close()");
 				// s0.emit();
 			}
@@ -165,9 +188,13 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				float[] ret = translateMouse(e.getX(), e.getY(), w, h);
-				mx = ret[0];
-				my = ret[1];
+				int px = e.getX();
+				int py = e.getY();
+				float[] mPos = translateMouse(px, py, w, h);
+				mx = px;// mPos[0]*Math.abs(dz);
+				my = py;// mPos[1]*Math.abs(dz);
+//				hovering = true;
+//				reportHovered = true;
 			}
 		});
 
@@ -189,11 +216,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		maxLayer = 0;
 		for (MapRoom mr : islandRooms.get(islandNo)) {
 			int layer = mr.getCoords().getLayer();
-			if (islandNo == 0) {
-				System.out.println("l:" + layer);
-			}
 			if (layer > maxLayer) {
-				System.out.println("sm:" + layer);
 				maxLayer = layer;
 			}
 		}
@@ -258,6 +281,58 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		}
 	}
 
+	public void screenShot() {
+		screenShotPath = getScreenShotPath();
+		readPixels = true;
+	}
+
+	public void transparentScreenShot() {
+		screenShotPath = getScreenShotPath();
+		readPixels = true;
+		transparentShot = true;
+	}
+
+	private void setScreenShotParent() {
+		File parent;
+		if (SWAEdit.ref.currentFileName != null) {
+			File currentFile = new File(SWAEdit.ref.currentFileName);
+			parent = currentFile.getParentFile();
+			screenShotBareFileName = currentFile.getName().replace(".xml", "");
+		} else {
+			parent = new File(USER_HOME, ".swaedit");
+			screenShotBareFileName = "unnamed";
+		}
+		screenShotDir = new File(new File(parent, "mapshots"), screenShotBareFileName).getAbsoluteFile();
+	}
+
+	private String getScreenShotPath() {
+		screenShotDir.mkdirs();
+
+		File shot = null;
+		for (; shot == null || shot.exists(); screenShotCnt++) {
+			shot = new File(screenShotDir, screenShotBareFileName + "_" + getIslandNum() + "_" + getLayerNum() + "_"
+			        + screenShotCnt + ".png");
+		}
+
+		return shot.getAbsolutePath();
+	}
+
+	private int getLayerNum() {
+		return currentLayer + 1;
+	}
+
+	private int getMaxLayerNum() {
+		return maxLayer + 1;
+	}
+
+	private int getIslandNum() {
+		return currentIsland + 1;
+	}
+
+	private int getMaxIslandNum() {
+		return maxIslands;
+	}
+
 	public void show(int x, int y) {
 		if (!window.isVisible()) {
 			window.setPosition(x, y);
@@ -299,15 +374,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private float[] translateMouse(int x, int y, int w, int h) {
-		float[] p = new float[2];
-
-		// p[0] = (2.0f * x - w) / h;
-		// p[1] = 1.0f - (2.0f * y) / h;
-
-		p[0] = x * 2.0f / w;
-		p[1] = -y * 2.0f / h;
-
-		return p;
+		return new float[] { -(1.f - ((float) x * 2.f / (float) w)), 1.f - ((float) y * 2.f / (float) h) };
 	}
 
 	private void select(int cx, int cy) {
@@ -336,7 +403,12 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			selectBuf.get(sb, 0, hits * 4);
 			processHits(hits, sb);
 		} else {
-			selected = -1;
+			if (selection) {
+				selected = -1;
+			}
+			if (hovering) {
+				hovered = -1;
+			}
 		}
 
 		gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -346,16 +418,23 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 	private void processHits(int hits, int[] sb) {
 		float minz = Integer.MAX_VALUE;
-		selected = -1;
+		int chosen = -1;
 		for (int i = 0; i < hits * 4; i += 4) {
 			if (sb[i] == 1) {
 				float z = sb[i + 1];
 				z /= Integer.MAX_VALUE;
 				if (z < minz) {
 					minz = z;
-					selected = sb[i + 3];
+					chosen = sb[i + 3];
 				}
 			}
+		}
+
+		if (selection) {
+			selected = chosen;
+		}
+		if (hovering) {
+			hovered = chosen;
 		}
 	}
 
@@ -414,9 +493,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			}
 
 			if (showIslandsLayers > 0) {
-				int mxIsl = (maxIslands > 0) ? maxIslands - 1 : 0;
-				drawText("island: " + currentIsland + "/" + mxIsl + " layer: " + currentLayer + "/" + maxLayer, -1.f,
-				        -.94f);
+				drawText("island: " + getIslandNum() + "/" + getMaxIslandNum() + " layer: " + getLayerNum() + "/"
+				        + getMaxLayerNum(), -1.f, -.94f);
 				--showIslandsLayers;
 			}
 
@@ -428,7 +506,47 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 		gl.glFlush();
 
+		if (readPixels) {
+			readPixels = false;
+			Format format = Format.Format_RGB32;
+			if (transparentShot) {
+				transparentShot = false;
+				format = Format.Format_ARGB32;
+			}
+			byte[] pixels = new byte[w * h * bpp];
+			ByteBuffer buf = ByteBuffer.wrap(pixels);
+			gl.glReadPixels(0, 0, w, h, GL2.GL_RGBA, GL2.GL_BYTE, buf);
+			pixels = flipPixels(pixels);
+			RGBAtoARGB(pixels);
+			QImage img = new QImage(pixels, w, h, format);
+			img.save(screenShotPath);
+		}
+
 		cleanDrawnMark();
+	}
+
+	private byte[] flipPixels(byte[] imgPixels) {
+		byte[] flippedPixels = new byte[imgPixels.length];
+		int w4 = w * bpp;
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w4; x += bpp) {
+				for (int i = 0; i < bpp; i++) {
+					flippedPixels[(h - y - 1) * w4 + x + i] = imgPixels[y * w4 + x + i];
+				}
+			}
+		}
+
+		return flippedPixels;
+	}
+
+	private byte[] RGBAtoARGB(byte[] pixels) {
+		for (int i = 0; i < pixels.length; i += bpp) {
+			byte r = pixels[i];
+			pixels[i] = pixels[i + 2];// b;
+			pixels[i + 2] = r;
+		}
+
+		return pixels;
 	}
 
 	private void drawText(String txt, float xShift, float yShift) {
@@ -466,9 +584,9 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 				gl.glPushMatrix();
 				gl.glTranslatef(rc.getX() * 2, rc.getY() * 2, rc.getZ() * 2);
 				gl.glLoadName(i);
-				if (selected == i++ && !selection) {
-					gl.glColor4ub((byte) 218, (byte) 168, (byte) 16, (byte) (255 * alpha));
-					if (reportSelected && !selection) {
+				if (selected == i && !selection) {
+					gl.glColor4ub((byte) 218, (byte) 168, (byte) 16, (byte) (255 * ALPHA));
+					if (reportSelected) {
 						reportSelected = false;
 						selectedVnum = mr.getRoom().getVnum();
 						// System.out.println("selected vnum: " + selectedVnum +
@@ -478,19 +596,27 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 						// " twoWay: " + ex.isTwoWay());
 						// }
 					}
+				} else if (hovered == i && !hovering) {
+					gl.glColor4ub((byte) 218, (byte) 218, (byte) 16, (byte) (255 * ALPHA));
+					if (reportHovered) {
+						reportHovered = false;
+	                    System.out.println("hovered: "+mr.getRoom().getVnum());
+                    }
 				} else {
-					if (i == 1) {
-						gl.glColor4f(0, 1, 0, alpha);
+					if (i == 0) {
+						gl.glColor4f(0, 1, 0, ALPHA);
 					} else {
-						gl.glColor4f(0, 0.7f, 0, alpha);
+						gl.glColor4f(0, 0.7f, 0, ALPHA);
 					}
 				}
 
 				drawRoom();
 
-				gl.glColor4f(0, 0.7f, 0, alpha);
+				gl.glColor4f(0, 0.7f, 0, ALPHA);
 				drawExits(mr);
 				gl.glPopMatrix();
+
+				i++;
 			}
 		}
 	}
@@ -686,6 +812,10 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			select(cx, cy);
 			selection = false;
 		}
+		if (hovering) {
+			select(mx, my);
+			hovering = false;
+		}
 		drawWorld();
 	}
 
@@ -705,21 +835,21 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
 		gl.glShadeModel(GL2.GL_SMOOTH);
 
+		// if (1==1) {
+		// gl.glEnable(GL2.GL_LIGHTING);
+		// float[] ambient = { 1.f, 1.f, 1.f, 1.f };
+		// gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
+		// gl.glEnable(GL2.GL_COLOR_MATERIAL);
+		// gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE);
+		// }
+
 		// int[] buf = new int[1];
 		// gl.glGetIntegerv(GL2.GL_SAMPLE_BUFFERS, buf, 0);
 		// System.out.println("sampleBuffers: " + buf[0]);
 		// gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
 		// System.out.println("samples:" + buf[0]);
 
-		Font f = null;
-		try {
-			f = Font.createFont(Font.TRUETYPE_FONT, new File("font.ttf"));
-			f = f.deriveFont(0, 12);
-		} catch (Exception e) {
-			e.printStackTrace();
-			f = new Font(Font.SERIF, 0, 12);
-		}
-		f = new Font(Font.SERIF, 0, 16);
+		Font f = new Font(Font.SERIF, 0, 16);
 		if (f != null) {
 			glFont = new GLFont(f, gl, 0, 0);
 		} else {
@@ -729,10 +859,11 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 	public void reshape(GLAutoDrawable d, int x, int y, int w, int h) {
 		this.w = w;
-		this.h = h;
 		if (h == 0) {
 			h = 1;
 		}
+		this.h = h;
+
 		aspect = w / h;
 
 		update();

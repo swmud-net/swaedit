@@ -108,7 +108,7 @@ public class SWAEdit extends QMainWindow {
     private Names planets;
     private Types positions;
     private Types repairTypes;
-    private String currentFileName;
+    String currentFileName;
     private QLabel[] valueLabels = new QLabel[6];
     private QWidget[] valueWidgets = new QWidget[6];
     private QHBoxLayout[] valueLayouts = new QHBoxLayout[6];
@@ -186,7 +186,7 @@ public class SWAEdit extends QMainWindow {
         
         //FIXME: temporary for map testing - remove afterwards
 //        {
-//            String fileName = "/root/workspace/swaedit/quarren.are.xml";
+//            String fileName = "/root/workspace/swaedit/quarren.xml";
 //            area = JAXBOperations.unmarshallArea(fileName);
 //            currentFileName = fileName;
 //            fillAll();

@@ -51,6 +51,10 @@ public class MapKeyHandler extends KeyAdapter {
 			minion.incLayer();
 		} else if (kc == KeyEvent.VK_DOWN) {
 			minion.decLayer();
+		} else if (kc == KeyEvent.VK_F12) {
+			minion.screenShot();
+		} else if (kc == KeyEvent.VK_F11) {
+			minion.transparentScreenShot();
 		}
 	}
 
@@ -74,6 +78,10 @@ public class MapKeyHandler extends KeyAdapter {
 		void showHelp();
 
 		void showFullscreen();
+		
+		void screenShot();
+		
+		void transparentScreenShot();
 	}
 
 }

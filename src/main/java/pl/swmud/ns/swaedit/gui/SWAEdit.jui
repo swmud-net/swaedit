@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>908</width>
-    <height>673</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1678,7 +1678,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Extra Descriptions</string>
+               <string>Extra Descriptions</string>
               </property>
              </widget>
             </item>
@@ -1742,7 +1742,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Requirements</string>
+               <string>Requirements</string>
               </property>
              </widget>
             </item>
@@ -2426,7 +2426,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Affects</string>
+               <string>Affects</string>
               </property>
              </widget>
             </item>
@@ -2487,7 +2487,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Item Programs</string>
+               <string>Item Programs</string>
               </property>
              </widget>
             </item>
@@ -3561,42 +3561,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Mobile Programs</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer>
-              <property name="orientation">
-               <enum>com.trolltech.qt.core.Qt.Orientation.Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>10</width>
-                <height>24</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_69">
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>&lt;- Progs :: Specs -&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>com.trolltech.qt.core.Qt.AlignmentFlag.AlignCenter</set>
+               <string>Mobile Programs</string>
               </property>
              </widget>
             </item>
@@ -3634,7 +3599,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Mobile Specials</string>
+               <string>Mobile Specials</string>
               </property>
              </widget>
             </item>
@@ -6327,7 +6292,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Extra Descriptions</string>
+               <string>Extra Descriptions</string>
               </property>
              </widget>
             </item>
@@ -6388,7 +6353,7 @@
                <enum>com.trolltech.qt.core.Qt.FocusPolicy.StrongFocus</enum>
               </property>
               <property name="text">
-               <string>Manage Room Programs</string>
+               <string>Room Programs</string>
               </property>
              </widget>
             </item>
@@ -7926,7 +7891,7 @@
      <x>0</x>
      <y>0</y>
      <width>908</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
