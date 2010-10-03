@@ -46,80 +46,93 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private GL2 gl;
 	private GLU glu;
 
+	private boolean multisample = true;
+	private static final float ALPHA = .5f;
+
+	private static final int MAX_NAMESTACK_SIZE = 2;
+	private static final byte[] selectionColor = { (byte) 218, (byte) 168, (byte) 16, (byte) (255 * ALPHA) };
+	private static final float[] objectColor = { .0f, .7f, .0f, ALPHA };
 	private int cx, cy;
 	private int selected = -1;
 	private boolean reportSelected;
 	private boolean selection;
 	private BigInteger selectedVnum;
+	private int exitShift;
+	private ExitWrapper selectedExit;
 
 	private int w, h;
 	private float fov = 60f;
 	private float aspect;
 	private float near = 1.0f;
-	private float far = 100.0f;
+	private float far = 500.0f;
 
-	private boolean multisample = true;
-	private static final float ALPHA = .5f;
-
-	private float dz = -31;
-	private float rot = 0;
-	private float angle;
-	private float dx, dy;
-	private double oldx, oldy;
-	private float rx, ry, rz;
+	private static final float PI2 = (float) Math.PI * .5f;
+	private static final float ROT_SENS_MULT = .03f;
+	private static final float INITIAL_Z = -31.f;
+	private float dz = INITIAL_Z;
+	private float rot, angle, dx, dy, oldx, oldy, xRot, yRot, zRot, xAngle, yAngle, zAngle;
+	private boolean xRotAxis, yRotAxis, zRotAxis;
 
 	private SortedMap<Integer, List<MapRoom>> islandRooms;
 	private float xMiddle, yMiddle;
-	private int currentIsland = 0;
+	private int currentIsland;
+	private int currentIslandSize;
 	private final int maxIslands;
-	private int currentLayer = 0;
+	private int currentLayer;
 	private int maxLayer;
 
 	private boolean drawDistantExits;
 
 	private GLFont glFont;
 
-	private int mx, my;
-	private int hovered = -1;
-	private boolean reportHovered;
-	private boolean hovering;
-	private BigInteger hoveredVnum;
+	// private int mx, my;
+	// private int hovered = -1;
+	// private boolean reportHovered;
+	// private boolean hovering;
+	// private BigInteger hoveredVnum;
 
 	private boolean drawCross;
 	private boolean showHelp;
 	private int showIslandsLayers;
 	private int fulscreenWidth, fulscreenHeight;
 
-	private int bpp = 4; /* bytes per pixel */
+	private static final int BPP = 4; /* bytes per pixel */
 
 	private boolean readPixels;
 	private boolean transparentShot;
 	private String screenShotPath;
 	private File screenShotDir;
 	private String screenShotBareFileName;
-	private long screenShotCnt;
+	private long screenShotCnt = 1;
 	private static final String USER_HOME = System.getProperty("user.home");
 
 	private static final List<String> MENU_KEYS = new ArrayList<String>() {
 		private static final long serialVersionUID = 1041444819386431807L;
 		{
-			add("d     - toggle distant exits");
-			add("m     - toggle multisampling");
-			add("space - toggle rotation");
-			add("h     - toggle this help text");
-			add("k     - toggle cross");
-			add("c     - reset to center");
-			add("f     - toggle fullscreen");
-			add("up    - next island");
-			add("down  - previous island");
-			add("right - next layer");
-			add("left  - previous layer");
-			add("F12   - take a screenshot");
-			add("F11   - take a transparent screenshot");
+			add("d      - toggle distant exits");
+			add("m      - toggle multisampling");
+			add("space  - toggle rotation");
+			add("h      - toggle this help text");
+			add("k      - toggle cross");
+			add("c      - reset to center");
+			add("f      - toggle fullscreen");
+			add("up     - next island");
+			add("down   - previous island");
+			add("right  - next layer");
+			add("left   - previous layer");
+			add("F12    - take a screenshot");
+			add("F11    - take a transparent screenshot");
+			add("lMouse - drag to move, click to select room/exit");
+			add("rMouse - drag to change rotation angle");
+			add("shift  - hold to apply angle to X-axis");
+			add("ctrl   - hold to apply angle to Y-axis");
+			add("alt    - hold to apply angle to Z-axis");
 		}
 	};
 
-	// private final Signal0 s0 = new Signal0();
+	private final Signal1<BigInteger> vnumSelected = new Signal1<BigInteger>();
+	private final Signal2<BigInteger, Integer> exitSelected = new Signal2<BigInteger, Integer>();
+	private final Signal0 windowClosed = new Signal0();
 
 	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands) {
 		this.islandRooms = islandRooms;
@@ -140,9 +153,9 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			@Override
 			public void windowDestroyNotify(WindowEvent e) {
 				super.windowDestroyNotify(e);
-				System.exit(0);
-				// s0.connect(SWAEdit.ref, "close()");
-				// s0.emit();
+				// System.exit(0);
+				windowClosed.connect(SWAEdit.ref, "mapClosed()");
+				windowClosed.emit();
 			}
 		});
 		window.addMouseListener(new MouseAdapter() {
@@ -183,20 +196,72 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 						dy -= SENSITIVITY;
 					}
 					oldy = py;
+				} else if (e.getButton() == MouseEvent.BUTTON3) {
+					float px = (float) e.getX();
+					float py = (float) e.getY();
+					if (xRotAxis) {
+						if (py < oldy) {
+							xRot -= SENSITIVITY * ROT_SENS_MULT;
+						} else if (py > oldy) {
+							xRot += SENSITIVITY * ROT_SENS_MULT;
+						}
+
+						if (xRot > PI2) {
+							xRot = .0f;
+						} else if (xRot < .0f) {
+							xRot = PI2;
+						}
+
+						xAngle = 360.f * Math.abs((float) Math.sin(xRot));
+					}
+
+					if (yRotAxis) {
+						if (px > oldx) {
+							yRot += SENSITIVITY * ROT_SENS_MULT;
+						} else if (px < oldx) {
+							yRot -= SENSITIVITY * ROT_SENS_MULT;
+						}
+
+						if (yRot > PI2) {
+							yRot = .0f;
+						} else if (yRot < .0f) {
+							yRot = PI2;
+						}
+
+						yAngle = 360.f * Math.abs((float) Math.sin(yRot));
+					}
+
+					if (zRotAxis) {
+						if (py < oldy) {
+							zRot += SENSITIVITY * ROT_SENS_MULT;
+						} else if (py > oldy) {
+							zRot -= SENSITIVITY * ROT_SENS_MULT;
+						}
+
+						if (zRot > PI2) {
+							zRot = .0f;
+						} else if (zRot < .0f) {
+							zRot = PI2;
+						}
+
+						zAngle = 360.f * Math.abs((float) Math.sin(zRot));
+					}
+
+					oldx = px;
+					oldy = py;
 				}
 			}
-
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				int px = e.getX();
-				int py = e.getY();
-				float[] mPos = translateMouse(px, py, w, h);
-				mx = px;// mPos[0]*Math.abs(dz);
-				my = py;// mPos[1]*Math.abs(dz);
-//				hovering = true;
-//				reportHovered = true;
-			}
+			/*
+			 * @Override public void mouseMoved(MouseEvent e) { int px =
+			 * e.getX(); int py = e.getY(); float[] mPos = translateMouse(px,
+			 * py, w, h); mx = px;// mPos[0]*Math.abs(dz); my = py;//
+			 * mPos[1]*Math.abs(dz); // hovering = true; // reportHovered =
+			 * true; }
+			 */
 		});
+
+		vnumSelected.connect(SWAEdit.ref, "mapRoomVnumSelected(BigInteger)");
+		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,int)");
 
 		animator = new FPSAnimator[2];
 		animator[0] = new FPSAnimator(window, 30);
@@ -208,7 +273,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 	private void setupIsland(int islandNo) {
 		currentIsland = islandNo;
-		selectBufLen = islandRooms.get(islandNo).size() * 4 + 5;
+		currentIslandSize = islandRooms.get(islandNo).size();
+		selectBufLen = currentIslandSize * 4 + 5;
 		xMiddle = getXMiddle(islandNo);
 		yMiddle = getYMiddle(islandNo);
 		selected = -1;
@@ -260,9 +326,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	public void center() {
-		dz = -31;
-		rot = dx = dy = angle = 0;
-		oldx = oldy = 0;
+		dz = INITIAL_Z;
+		rot = dx = dy = angle = oldx = oldy = xRot = yRot = zRot = xAngle = yAngle = zAngle = .0f;
 	}
 
 	public void showHelp() {
@@ -290,6 +355,30 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		screenShotPath = getScreenShotPath();
 		readPixels = true;
 		transparentShot = true;
+	}
+
+	public void xRotOff() {
+		xRotAxis = false;
+	}
+
+	public void xRotOn() {
+		xRotAxis = true;
+	}
+
+	public void yRotOff() {
+		yRotAxis = false;
+	}
+
+	public void yRotOn() {
+		yRotAxis = true;
+	}
+
+	public void zRotOff() {
+		zRotAxis = false;
+	}
+
+	public void zRotOn() {
+		zRotAxis = true;
 	}
 
 	private void setScreenShotParent() {
@@ -373,9 +462,67 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		}.getMiddle();
 	}
 
-	private float[] translateMouse(int x, int y, int w, int h) {
-		return new float[] { -(1.f - ((float) x * 2.f / (float) w)), 1.f - ((float) y * 2.f / (float) h) };
+	public void showRoom(BigInteger vnum) {
+		int[] islandRoom = findIsland(vnum);
+		if (islandRoom != null) {
+			if (currentIsland != islandRoom[0]) {
+				setupIsland(islandRoom[0]);
+			}
+			selected = islandRoom[1];
+			selectedVnum = vnum;
+		}
 	}
+
+	private int[] findIsland(BigInteger vnum) {
+		for (int islandNo : islandRooms.keySet()) {
+			int roomNo = 0;
+			for (MapRoom mr : islandRooms.get(islandNo)) {
+				if (vnum.equals(mr.getRoom().getVnum())) {
+					return new int[] { islandNo, roomNo };
+				}
+				++roomNo;
+			}
+		}
+		return null;
+	}
+
+	public void showExit(BigInteger ownerRoomVnum, int exitIdx) {
+		int[] islandRoom = findIsland(ownerRoomVnum);
+		if (islandRoom != null) {
+			if (currentIsland != islandRoom[0]) {
+				setupIsland(islandRoom[0]);
+			}
+			selectedVnum = ownerRoomVnum;
+
+			int exitNo = 0;
+			boolean foundRoom = false;
+			for (MapRoom mr : islandRooms.get(currentIsland)) {
+				if (mr.getRoom().getVnum().equals(ownerRoomVnum)) {
+					foundRoom = true;
+				}
+
+				int eI = 0;
+				for (ExitWrapper exit : mr.getMapRooms().keySet()) {
+					int shift = currentIslandSize + exitNo;
+					if (foundRoom && eI == exitIdx) {
+						selectedExit = exit;
+						selected = shift;
+						if (exit.isDistant() && !drawDistantExits) {
+	                        drawDistantExits = true;
+                        }
+						return;
+					}
+					exitNo++;
+					eI++;
+				}
+			}
+		}
+	}
+
+	// private float[] translateMouse(int x, int y, int w, int h) {
+	// return new float[] { -(1.f - ((float) x * 2.f / (float) w)), 1.f -
+	// ((float) y * 2.f / (float) h) };
+	// }
 
 	private void select(int cx, int cy) {
 		int[] viewport = new int[4];
@@ -405,10 +552,11 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		} else {
 			if (selection) {
 				selected = -1;
+				selectedExit = null;
 			}
-			if (hovering) {
-				hovered = -1;
-			}
+			// if (hovering) {
+			// hovered = -1;
+			// }
 		}
 
 		gl.glMatrixMode(GL2.GL_PROJECTION);
@@ -417,12 +565,12 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private void processHits(int hits, int[] sb) {
-		float minz = Integer.MAX_VALUE;
+		float minz = Float.MAX_VALUE;
 		int chosen = -1;
 		for (int i = 0; i < hits * 4; i += 4) {
-			if (sb[i] == 1) {
+			if (sb[i] < MAX_NAMESTACK_SIZE) {
 				float z = sb[i + 1];
-				z /= Integer.MAX_VALUE;
+				z /= Float.MAX_VALUE;
 				if (z < minz) {
 					minz = z;
 					chosen = sb[i + 3];
@@ -433,18 +581,18 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		if (selection) {
 			selected = chosen;
 		}
-		if (hovering) {
-			hovered = chosen;
-		}
+		// if (hovering) {
+		// hovered = chosen;
+		// }
 	}
 
 	private void drawWorld() {
 		if (animator[0].isAnimating()) {
 			rot += 0.002;
-			if (rot > Math.PI / 2) {
-				rot = 0;
+			if (rot > Math.PI / 2.f) {
+				rot = .0f;
 			}
-			angle = 360 * Math.abs((float) Math.sin(rot));
+			angle = 360.f * Math.abs((float) Math.sin(rot));
 		}
 
 		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
@@ -453,25 +601,12 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 		gl.glLoadIdentity();
 
-		gl.glPushMatrix();
 		drawIslands();
-		gl.glPopMatrix();
 
-		gl.glPushMatrix();
 		drawWindRose();
-		gl.glPopMatrix();
 
 		if (drawCross) {
-			gl.glPushMatrix();
-			gl.glTranslatef(0, 0, -1);
-			gl.glColor3f(1, 1, 1);
-			gl.glBegin(GL2.GL_LINES);
-			gl.glVertex3f(-1, 0, 0);
-			gl.glVertex3f(1, 0, 0);
-			gl.glVertex3f(0, -1, 0);
-			gl.glVertex3f(0, 1, 0);
-			gl.glEnd();
-			gl.glPopMatrix();
+			drawCrossGL();
 		}
 
 		if (selected >= 0 && selectedVnum != null || showHelp || showIslandsLayers > 0) {
@@ -480,8 +615,15 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			gl.glPushAttrib(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 			setOrthoOn();
 
-			if (selected >= 0 && selectedVnum != null) {
-				drawText("vnum selected: " + selectedVnum.toString(), -1.f, -.98f);
+			if (selected >= 0) {
+				if (selectedVnum != null) {
+					if (selected < currentIslandSize) {
+						drawText("vnum selected: " + selectedVnum.toString(), -1.f, -.98f);
+					} else if (selectedExit != null) {
+						drawText("exit selected: " + selectedVnum.toString() + "->" + selectedExit.getDirectionName()
+						        + "->" + selectedExit.getVnum().toString(), -1.f, -.98f);
+					}
+				}
 			}
 
 			if (showHelp) {
@@ -507,30 +649,47 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		gl.glFlush();
 
 		if (readPixels) {
-			readPixels = false;
-			Format format = Format.Format_RGB32;
-			if (transparentShot) {
-				transparentShot = false;
-				format = Format.Format_ARGB32;
-			}
-			byte[] pixels = new byte[w * h * bpp];
-			ByteBuffer buf = ByteBuffer.wrap(pixels);
-			gl.glReadPixels(0, 0, w, h, GL2.GL_RGBA, GL2.GL_BYTE, buf);
-			pixels = flipPixels(pixels);
-			RGBAtoARGB(pixels);
-			QImage img = new QImage(pixels, w, h, format);
-			img.save(screenShotPath);
+			takeScreenshot();
 		}
 
 		cleanDrawnMark();
 	}
 
+	private void drawCrossGL() {
+		gl.glPushMatrix();
+		gl.glTranslatef(0, 0, -1);
+		gl.glColor3f(1, 1, 1);
+		gl.glBegin(GL2.GL_LINES);
+		gl.glVertex3f(-1, 0, 0);
+		gl.glVertex3f(1, 0, 0);
+		gl.glVertex3f(0, -1, 0);
+		gl.glVertex3f(0, 1, 0);
+		gl.glEnd();
+		gl.glPopMatrix();
+	}
+
+	private void takeScreenshot() {
+		readPixels = false;
+		Format format = Format.Format_RGB32;
+		if (transparentShot) {
+			transparentShot = false;
+			format = Format.Format_ARGB32;
+		}
+		byte[] pixels = new byte[w * h * BPP];
+		ByteBuffer buf = ByteBuffer.wrap(pixels);
+		gl.glReadPixels(0, 0, w, h, GL2.GL_RGBA, GL2.GL_BYTE, buf);
+		pixels = flipPixels(pixels);
+		RGBAtoARGB(pixels);
+		QImage img = new QImage(pixels, w, h, format);
+		img.save(screenShotPath);
+	}
+
 	private byte[] flipPixels(byte[] imgPixels) {
 		byte[] flippedPixels = new byte[imgPixels.length];
-		int w4 = w * bpp;
+		int w4 = w * BPP;
 		for (int y = 0; y < h; y++) {
-			for (int x = 0; x < w4; x += bpp) {
-				for (int i = 0; i < bpp; i++) {
+			for (int x = 0; x < w4; x += BPP) {
+				for (int i = 0; i < BPP; i++) {
 					flippedPixels[(h - y - 1) * w4 + x + i] = imgPixels[y * w4 + x + i];
 				}
 			}
@@ -540,7 +699,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private byte[] RGBAtoARGB(byte[] pixels) {
-		for (int i = 0; i < pixels.length; i += bpp) {
+		for (int i = 0; i < pixels.length; i += BPP) {
 			byte r = pixels[i];
 			pixels[i] = pixels[i + 2];// b;
 			pixels[i + 2] = r;
@@ -571,24 +730,31 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private void drawIslands() {
+		gl.glPushMatrix();
 		List<MapRoom> island = islandRooms.get(currentIsland);
 		gl.glTranslatef(dx, dy, dz);
-		gl.glRotatef(angle, 1, 1, 1);
+		gl.glRotatef(xAngle, 1.f, .0f, .0f);
+		gl.glRotatef(yAngle, .0f, 1.f, .0f);
+		gl.glRotatef(zAngle, .0f, .0f, 1.f);
+		gl.glRotatef(angle, 1.f, 1.f, 1.f);
 		RoomCoords coords = island.get(0).getCoords();
 		gl.glTranslatef(-.5f + xMiddle - coords.getX(), -.5f + yMiddle - coords.getY(), -.5f);
 		gl.glPushName(-1);
 		int i = 0;
+		exitShift = 0;
 		for (MapRoom mr : island) {
 			RoomCoords rc = mr.getCoords();
 			if (rc.getLayer() == currentLayer) {
 				gl.glPushMatrix();
 				gl.glTranslatef(rc.getX() * 2, rc.getY() * 2, rc.getZ() * 2);
 				gl.glLoadName(i);
+				gl.glPassThrough((float) i);
 				if (selected == i && !selection) {
-					gl.glColor4ub((byte) 218, (byte) 168, (byte) 16, (byte) (255 * ALPHA));
+					gl.glColor4ubv(selectionColor, 0);
 					if (reportSelected) {
 						reportSelected = false;
 						selectedVnum = mr.getRoom().getVnum();
+						vnumSelected.emit(selectedVnum);
 						// System.out.println("selected vnum: " + selectedVnum +
 						// ", " + mr.getCoords());
 						// for (ExitWrapper ex : mr.getMapRooms().keySet()) {
@@ -596,29 +762,30 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 						// " twoWay: " + ex.isTwoWay());
 						// }
 					}
-				} else if (hovered == i && !hovering) {
-					gl.glColor4ub((byte) 218, (byte) 218, (byte) 16, (byte) (255 * ALPHA));
-					if (reportHovered) {
-						reportHovered = false;
-	                    System.out.println("hovered: "+mr.getRoom().getVnum());
-                    }
+					// } else if (hovered == i && !hovering) {
+					// gl.glColor4ub((byte) 218, (byte) 218, (byte) 16, (byte)
+					// (255 * ALPHA));
+					// if (reportHovered) {
+					// reportHovered = false;
+					// System.out.println("hovered: " + mr.getRoom().getVnum());
+					// }
 				} else {
 					if (i == 0) {
-						gl.glColor4f(0, 1, 0, ALPHA);
+						gl.glColor4f(.0f, 1.f, .0f, ALPHA);
 					} else {
-						gl.glColor4f(0, 0.7f, 0, ALPHA);
+						gl.glColor4fv(objectColor, 0);
 					}
 				}
 
 				drawRoom();
 
-				gl.glColor4f(0, 0.7f, 0, ALPHA);
 				drawExits(mr);
 				gl.glPopMatrix();
 
 				i++;
 			}
 		}
+		gl.glPopMatrix();
 	}
 
 	private void cleanDrawnMark() {
@@ -635,9 +802,13 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
 		glu.gluQuadricTexture(quadratic, true);
 
+		int shift;
+		int i = 0;
 		for (ExitWrapper exit : mr.getMapRooms().keySet()) {
 			ExitWrapper revExit = exit.getRevExit();
 			if ((revExit == null || !revExit.isDrawn()) && !exit.isDrawn()) {
+				shift = currentIslandSize + exitShift;
+				gl.glLoadName(shift);
 				gl.glPushMatrix();
 
 				switch (exit.getDirection()) {
@@ -699,6 +870,18 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 				}
 
 				if ((!drawDistantExits && !exit.isDistant()) || drawDistantExits) {
+					if (!selection && selected == shift) {
+						gl.glColor4ubv(selectionColor, 0);
+						if (reportSelected) {
+							reportSelected = false;
+							selectedExit = exit;
+							selectedVnum = mr.getRoom().getVnum();
+							exitSelected.emit(selectedVnum, i);
+						}
+					} else {
+						gl.glColor4fv(objectColor, 0);
+					}
+
 					if (exit.isTwoWay()) {
 						glu.gluCylinder(quadratic, 0.2, 0.2, 1, 32, 32);
 					} else {
@@ -709,6 +892,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 
 				gl.glPopMatrix();
 			}
+			exitShift++;
+			i++;
 		}
 
 		glu.gluDeleteQuadric(quadratic);
@@ -751,9 +936,15 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private void drawWindRose() {
-		float zRose = -20;
+		gl.glPushMatrix();
+		final float fScale = .1f;
+		final float zRose = -2.f;
 		float[] lb = getLeftBottom(zRose);
-		gl.glTranslatef(lb[0] + 1, lb[1] + 1, zRose);
+		gl.glTranslatef(lb[0] + fScale, lb[1] + fScale, zRose);
+		gl.glScalef(fScale, fScale, fScale);
+		gl.glRotatef(xAngle, 1.f, .0f, .0f);
+		gl.glRotatef(yAngle, .0f, 1.f, .0f);
+		gl.glRotatef(zAngle, .0f, .0f, 1.f);
 		gl.glRotatef(angle, 1, 1, 1);
 
 		gl.glBegin(GL2.GL_LINES);
@@ -789,6 +980,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		gl.glColor4f(0, 0, 1, 1);
 		drawArrow();
 		gl.glPopMatrix();
+		gl.glPopMatrix();
 	}
 
 	private void drawArrow() {
@@ -812,10 +1004,10 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			select(cx, cy);
 			selection = false;
 		}
-		if (hovering) {
-			select(mx, my);
-			hovering = false;
-		}
+		// if (hovering) {
+		// select(mx, my);
+		// hovering = false;
+		// }
 		drawWorld();
 	}
 

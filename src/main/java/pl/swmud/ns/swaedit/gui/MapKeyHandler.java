@@ -55,6 +55,24 @@ public class MapKeyHandler extends KeyAdapter {
 			minion.screenShot();
 		} else if (kc == KeyEvent.VK_F11) {
 			minion.transparentScreenShot();
+		} else if (kc == KeyEvent.VK_SHIFT) {
+			minion.xRotOn();
+		} else if (kc == KeyEvent.VK_CONTROL) {
+			minion.yRotOn();
+		} else if (kc == KeyEvent.VK_ALT) {
+			minion.zRotOn();
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		int kc = e.getKeyCode();
+		if (kc == KeyEvent.VK_SHIFT) {
+			minion.xRotOff();
+		} else if (kc == KeyEvent.VK_CONTROL) {
+			minion.yRotOff();
+		} else if (kc == KeyEvent.VK_ALT) {
+			minion.zRotOff();
 		}
 	}
 
@@ -64,24 +82,36 @@ public class MapKeyHandler extends KeyAdapter {
 		void rotationStopped();
 
 		void drawDistantExits();
-		
+
 		void incLayer();
-		
+
 		void decLayer();
-		
+
 		void multisampling();
-		
+
 		void drawCross();
-		
+
 		void center();
-		
+
 		void showHelp();
 
 		void showFullscreen();
-		
+
 		void screenShot();
-		
+
 		void transparentScreenShot();
+
+		void xRotOn();
+
+		void yRotOn();
+
+		void zRotOn();
+
+		void xRotOff();
+
+		void yRotOff();
+
+		void zRotOff();
 	}
 
 }

@@ -90,6 +90,56 @@ public class ExitWrapper extends Exit implements Comparable<ExitWrapper> {
 		return direction;
 	}
 
+	public String getDirectionName() {
+		String name;
+		switch (getDirection()) {
+		case 0: /* north */
+			name = "north";
+			break;
+
+		case 1: /* east */
+			name = "east";
+			break;
+
+		case 2: /* south */
+			name = "south";
+			break;
+
+		case 3: /* west */
+			name = "west";
+			break;
+
+		case 4: /* up */
+			name = "up";
+			break;
+
+		case 5: /* down */
+			name = "down";
+			break;
+
+		case 6: /* north-east */
+			name = "north-east";
+			break;
+
+		case 7: /* north-west */
+			name = "north-west";
+			break;
+
+		case 8: /* south-east */
+			name = "south-east";
+			break;
+
+		case 9: /* south-west */
+			name = "south-west";
+			break;
+
+		default: /* somewhere: 10 */
+			name = "somewhere";
+		}
+
+		return name;
+	}
+
 	public ExitWrapper getRevExit() {
 		return revExit;
 	}

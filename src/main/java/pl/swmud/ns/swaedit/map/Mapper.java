@@ -24,7 +24,7 @@ public class Mapper {
 		this.area = area;
 	}
 
-	public void makeMap() {
+	public MapWidget makeMap() {
 		for (Room room : area.getRooms().getRoom()) {
 			if (!isAlreadyMade(room)) {
 				RoomCoords coords = new RoomCoords(0, 0, 0, islandNo++);
@@ -49,6 +49,7 @@ public class Mapper {
 
 		MapWidget mw = new MapWidget(islandRooms, 0, islandNo);
 		mw.show(0, 0);
+		return mw;
 	}
 
 	private void makeMapRoom(MapRoom parent, Room room) {

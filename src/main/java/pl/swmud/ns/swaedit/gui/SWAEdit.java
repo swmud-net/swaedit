@@ -130,6 +130,8 @@ public class SWAEdit extends QMainWindow {
     private int keyValue = -1;
     private QSystemTrayIcon sysTray = new QSystemTrayIcon(new QIcon("images/icon.png"),this);
     private QTimer backupTimer = new QTimer(this);
+    private MapWidget mapWidget;
+    private boolean mapSelection;
     
     public static void main(String[] args) {
         try {
@@ -358,8 +360,13 @@ public class SWAEdit extends QMainWindow {
             return;
         }
         Mapper mapper = new Mapper(area);
-        mapper.makeMap();
+        mapWidget = mapper.makeMap();
         statusBar().showMessage("Map prepared.", 5000);
+    }
+    
+    @SuppressWarnings("unused")
+    private void mapClosed() {
+    	mapWidget = null;
     }
 
     private void on_actionCreate_New_Reset_triggered() {
@@ -2503,7 +2510,23 @@ public class SWAEdit extends QMainWindow {
         if (!roomCanChange) {
             return;
         }
-        fillRoomData((Room)ui.roomNavigatorComboBox.itemData(idx));
+        Room room = (Room)ui.roomNavigatorComboBox.itemData(idx);
+        fillRoomData(room);
+        if (mapWidget != null && !mapSelection) {
+	        mapWidget.showRoom(room.getVnum());
+        }
+    }
+    
+    private void mapRoomVnumSelected(BigInteger vnum) {
+    	for (int i = 0; i < ui.roomNavigatorComboBox.count(); i++) {
+	        Room r = (Room)ui.roomNavigatorComboBox.itemData(i);
+	        if (r.getVnum().equals(vnum)) {
+	        	mapSelection = true;
+	            ui.roomNavigatorComboBox.setCurrentIndex(i);
+	            mapSelection = false;
+	            break;
+            }
+        }
     }
     
     @SuppressWarnings("unused")
@@ -2795,7 +2818,23 @@ public class SWAEdit extends QMainWindow {
         if (!roomCanChange) {
             return;
         }
-        fillExit((Exit)ui.roomExitNavigatorComboBox.itemData(idx));
+        Exit exit = (Exit)ui.roomExitNavigatorComboBox.itemData(idx); 
+        fillExit(exit);
+        if (mapWidget != null && !mapSelection && exit != null) {
+	        mapWidget.showExit(getCurrentRoom().getVnum(), idx);
+        }
+    }
+    
+    @SuppressWarnings("unused")
+    private void mapRoomExitSelected(BigInteger ownerRoomVnum, int exitIdx) {
+    	if (!getCurrentRoom().getVnum().equals(ownerRoomVnum)) {
+	        mapRoomVnumSelected(ownerRoomVnum);
+        }
+    	if (exitIdx >= 0 && exitIdx < ui.roomNavigatorComboBox.count()) {
+    		mapSelection = true;
+        	ui.roomExitNavigatorComboBox.setCurrentIndex(exitIdx);
+        	mapSelection = false;
+        }
     }
 
     @SuppressWarnings("unused")
