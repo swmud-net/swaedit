@@ -116,10 +116,10 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			add("k      - toggle cross");
 			add("c      - reset to center");
 			add("f      - toggle fullscreen");
-			add("up     - next island");
-			add("down   - previous island");
-			add("right  - next layer");
-			add("left   - previous layer");
+			add("right  - next island");
+			add("left   - previous island");
+			add("up     - next layer");
+			add("down   - previous layer");
 			add("F12    - take a screenshot");
 			add("F11    - take a transparent screenshot");
 			add("lMouse - drag to move, click to select room/exit");
