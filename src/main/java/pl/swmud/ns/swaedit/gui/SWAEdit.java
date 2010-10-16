@@ -138,11 +138,15 @@ public class SWAEdit extends QMainWindow {
             System.setErr(new PrintStream(new FileOutputStream("swaedit_err.log",true)));
         } catch (FileNotFoundException e) {
         }
+        try {
+            System.setOut(new PrintStream(new FileOutputStream("swaedit_out.log",true)));
+        } catch (FileNotFoundException e) {
+        }
 
         QApplication.initialize(args);
         
         QApplication.setWindowIcon(new QIcon("images/icon.png"));
-        new SWAEdit().showNow();
+        new SWAEdit();
         new WelcomeScreen().showNow();
 
         QApplication.exec();
@@ -265,8 +269,8 @@ public class SWAEdit extends QMainWindow {
     }
     
     private void processEvents() {
-        QEventLoop.ProcessEventsFlags pef = new QEventLoop.ProcessEventsFlags(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents);
-        pef.set(QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers);
+        QEventLoop.ProcessEventsFlags pef = new QEventLoop.ProcessEventsFlags(QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers);
+        pef.set(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents);
         QAbstractEventDispatcher.instance().processEvents(pef);
     }
 

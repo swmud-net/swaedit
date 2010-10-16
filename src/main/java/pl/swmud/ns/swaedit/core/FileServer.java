@@ -2,14 +2,13 @@ package pl.swmud.ns.swaedit.core;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+//import java.io.FileNotFoundException;
+//import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
 
@@ -45,32 +44,25 @@ public class FileServer extends Thread {
 
     private final String ADDRESS = "swmud.pl";
     private final int PORT = 4011;
-    private final int BUF_LEN = 1024;
-    private ServerSocket server;
+//    private final int BUF_LEN = 1024;
     private BalloonWidget msgBalloon;
     private BalloonWidget dlBalloon;
     private Lastupdate lastUpdate;
-    private long bytes;
+//    private long bytes;
 
     public FileServer(final QPoint pos) {
-        msgBalloon = new BalloonWidget(new QPoint(pos.x(),pos.y()-70));
+        msgBalloon = new BalloonWidget(new QPoint(pos.x(),pos.y()));
         dlBalloon = new BalloonWidget(pos);
         msgBalloon.moveToThread(QApplication.instance().thread());
         dlBalloon.moveToThread(QApplication.instance().thread());
         lastUpdate = JAXBOperations.unmarshallLastUpdate("data/lastupdate.xml");
-        try {
-            server = new ServerSocket(8011);
-            start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        start();
     }
 
     public void run() {
-        Socket sock;
         int b;
         try {
-            sock = new Socket(ADDRESS,PORT);
+        	Socket sock = new Socket(ADDRESS,PORT);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
             bw.write(createRequest());
             bw.flush();
@@ -80,6 +72,7 @@ public class FileServer extends Thread {
             while( (b = is.read()) > 0 ) {
                 sw.write((char)b);
             }
+            sock.close();
 
             Usprotocol usprotocol = JAXBOperations.unmarshallUSProtocol(sw.toString());
             appendMessages(usprotocol);
@@ -92,17 +85,18 @@ public class FileServer extends Thread {
             if (progress > 0) {
                 setProgress(progress);   
             }
-
-            while ((sock = server.accept()) != null) {
+/*
+            server.setSoTimeout(60000);
+            if ((sock = server.accept()) != null) {
                 is = sock.getInputStream();
                 for (pl.swmud.ns.swaedit.usprotocol.File file : usprotocol.getResponse().getFiles().getFile()) {
                     retrFile(file,is,progress);
                 }
                 is.close();
-                break;
             }
             sock.close();
             server.close();
+*/
             lastUpdate.setTimestamp(BigInteger.valueOf(new Date().getTime()/1000));
             JAXBOperations.marshall(lastUpdate,"data/lastupdate.xml","schemas/lastupdate.xsd");
         } catch (IOException e) {
@@ -129,6 +123,7 @@ public class FileServer extends Thread {
         }
     }
     
+/*
     private void retrFile(pl.swmud.ns.swaedit.usprotocol.File file, InputStream is, long total) {
         int nread = -1;
         byte[] buf = new byte[BUF_LEN];
@@ -160,7 +155,7 @@ public class FileServer extends Thread {
             e.printStackTrace();
         }
     }
-    
+*/    
     private String createRequest() {
         Document doc = null;
         try {
@@ -206,7 +201,7 @@ public class FileServer extends Thread {
             }
         });
     }
-
+/*
     private void showProgress(final String filename, final double progress) {
         QApplication.invokeLater(new Runnable() {
             public void run() {
@@ -216,7 +211,7 @@ public class FileServer extends Thread {
             }
         });
     }
-
+*/
     private void showMessages(final int count) {
         QApplication.invokeLater(new Runnable() {
             public void run() {

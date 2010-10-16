@@ -12,6 +12,9 @@
 				<include>schemas/**</include>
 				<include>images/**</include>
 			</includes>
+			<excludes>
+				<exclude>images/*.xcf</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>target/dependency</directory>

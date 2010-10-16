@@ -22,7 +22,7 @@ public class MessagesWidget extends QWidget {
             if (role == Qt.ItemDataRole.DisplayRole || role == Qt.ItemDataRole.ToolTipRole) {
                 Message msg = messages.getMessage().get(index.row());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
-                return msg.getTitle()+" ("+sdf.format(new Date(msg.getTimestamp().longValue()))+")";
+                return msg.getTitle()+" ("+sdf.format(new Date(msg.getTimestamp().longValue()*1000))+")";
             }
             return null;
         }
@@ -61,7 +61,7 @@ public class MessagesWidget extends QWidget {
         Message msg = messages.getMessage().get(idx);
         ui.lAuthor.setText(msg.getAuthor());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
-        ui.lDate.setText(sdf.format(new Date(msg.getTimestamp().longValue())));
+        ui.lDate.setText(sdf.format(new Date(msg.getTimestamp().longValue()*1000)));
         ui.bodyText.setText(msg.getBody());
         ui.titleEdit.setText(msg.getTitle());
     }
