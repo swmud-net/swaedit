@@ -1044,8 +1044,6 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		Font f = new Font(Font.SERIF, 0, 16);
 		if (f != null) {
 			glFont = new GLFont(f, gl, 0, 0);
-		} else {
-			System.err.println("font is null!");
 		}
 	}
 

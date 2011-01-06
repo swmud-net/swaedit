@@ -1,8 +1,9 @@
 <assembly>
-	<id>win32-${project.version}</id>
+	<id>${assembly.id.win32}</id>
 	<formats>
 		<format>zip</format>
 	</formats>
+	<baseDirectory>${assembly.finalName}-${assembly.id.win32}</baseDirectory>
 	<componentDescriptors>
 		<componentDescriptor>src/main/assembly/bin-main.xml
 		</componentDescriptor>

@@ -3,6 +3,7 @@
 	<formats>
 		<format>tar.gz</format>
 	</formats>
+	<baseDirectory>${assembly.finalName}-all-${project.version}</baseDirectory>
 	<componentDescriptors>
 		<componentDescriptor>src/main/assembly/bin-main.xml
 		</componentDescriptor>

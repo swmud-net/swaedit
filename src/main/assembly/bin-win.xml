@@ -1,10 +1,10 @@
 <component>
 	<fileSets>
 		<fileSet>
-			<directory>src/main/scripts</directory>
+			<directory>target/dependency</directory>
 			<outputDirectory />
 			<includes>
-				<include>*.bat</include>
+				<include>swaedit.exe</include>
 			</includes>
 		</fileSet>
 	</fileSets>

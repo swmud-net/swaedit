@@ -189,7 +189,7 @@ public final class JAXBOperations {
             SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = sf.newSchema(new File(xsdPath));
             u.setSchema(schema);
-            names = (Names)((JAXBElement)u.unmarshal(filter(xmlPath))).getValue();
+            names = (Names)((JAXBElement<Names>)u.unmarshal(filter(xmlPath))).getValue();
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (SAXException e) {

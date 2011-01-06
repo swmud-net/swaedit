@@ -20,6 +20,11 @@
 		<jogl.lib.linux64>jogl-linux-amd64</jogl.lib.linux64>
 		<jogl.lib.win32>jogl-windows-i586</jogl.lib.win32>
 		<jogl.lib.win64>jogl-windows-amd64</jogl.lib.win64>
+		<assembly.id.linux32>linux32-${project.version}</assembly.id.linux32>
+		<assembly.id.linux64>linux64-${project.version}</assembly.id.linux64>
+		<assembly.id.win32>win32-${project.version}</assembly.id.win32>
+		<assembly.id.win64>win64-${project.version}</assembly.id.win64>
+		<assembly.finalName>${project.artifactId}-bin</assembly.finalName>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -97,7 +102,7 @@
 				<version>2.1</version>
 				<executions>
 					<execution>
-						<id>copy-qtjambi</id>
+						<id>copy-deps</id>
 						<phase>package</phase>
 						<goals>
 							<goal>copy</goal>
@@ -139,7 +144,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>unpack-qtjambi-libs</id>
+						<id>unpack-libs</id>
 						<phase>package</phase>
 						<goals>
 							<goal>unpack</goal>
@@ -187,6 +192,11 @@
 									<artifactId>${jogl.lib.win64}</artifactId>
 									<version>${jogl.version}</version>
 								</artifactItem>
+								<artifactItem>
+									<groupId>pl.swmud.ns.launcher</groupId>
+									<artifactId>swaedit</artifactId>
+									<version>1.0</version>
+								</artifactItem>
 							</artifactItems>
 						</configuration>
 					</execution>
@@ -204,6 +214,7 @@
 						</goals>
 						<inherited>false</inherited>
 						<configuration>
+							<finalName>${assembly.finalName}</finalName>
 							<descriptors>
 								<descriptor>src/main/assembly/bin-all.xml</descriptor>
 								<descriptor>src/main/assembly/bin-linux32.xml</descriptor>
@@ -211,7 +222,6 @@
 								<descriptor>src/main/assembly/bin-win32.xml</descriptor>
 								<descriptor>src/main/assembly/bin-win64.xml</descriptor>
 							</descriptors>
-							<finalName>${project.artifactId}-bin</finalName>
 						</configuration>
 					</execution>
 				</executions>

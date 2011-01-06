@@ -1,8 +1,9 @@
 <assembly>
-	<id>linux64-${project.version}</id>
+	<id>${assembly.id.linux64}</id>
 	<formats>
 		<format>tar.gz</format>
 	</formats>
+	<baseDirectory>${assembly.finalName}-${assembly.id.linux64}</baseDirectory>
 	<componentDescriptors>
 		<componentDescriptor>src/main/assembly/bin-main.xml
 		</componentDescriptor>

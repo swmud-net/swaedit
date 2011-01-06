@@ -245,6 +245,7 @@ public class SWAEdit extends QMainWindow {
     /* Event handling & events */
     protected void closeEvent(QCloseEvent e) {
         if (canLeaveCurrent()) {
+        	sysTray.hide();
             e.accept();
         }
         else {
@@ -1625,7 +1626,6 @@ public class SWAEdit extends QMainWindow {
     }
     
     /* Mobile Data section */
-    @SuppressWarnings("unchecked")
     private Mobile newMobile() {
         if (area == null) {
             QMessageBox.critical(null, "Mobile Creation", "No Area. Create one first.");
@@ -1663,7 +1663,7 @@ public class SWAEdit extends QMainWindow {
         mob.setName("m"+vnum);
         mob.setPosition((short)0);
         mob.setPrograms(of.createPrograms());
-        mob.setRace((String)((JAXBElement)races.getName().get(0)).getValue());
+        mob.setRace((String)((JAXBElement<String>)races.getName().get(0)).getValue());
         Sectiona sa = of.createSectiona();
         sa.setStr((short)0);
         sa.setInt((short)0);
@@ -1676,7 +1676,7 @@ public class SWAEdit extends QMainWindow {
         Sectionr sr = of.createSectionr();
         sr.setHeight((short)0);
         sr.setNumattacks((short)0);
-        sr.setSpeaking((String)((JAXBElement)languages.getName().get(0)).getValue());
+        sr.setSpeaking((String)((JAXBElement<String>)languages.getName().get(0)).getValue());
         sr.setSpeaks(0);
         sr.setWeight((short)0);
         mob.setSectionr(sr);
