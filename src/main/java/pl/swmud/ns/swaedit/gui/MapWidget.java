@@ -29,7 +29,6 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.trolltech.qt.QSignalEmitter;
 import com.trolltech.qt.gui.QImage;
@@ -41,7 +40,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private static final float SENSITIVITY = 0.06f;
 	private static final int FPS = 30;
 	private final GLWindow window;
-	private Animator[] animator;
+	private FPSAnimator[] animator;
 
 	private GL2 gl;
 	private GLU glu;
@@ -131,7 +130,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	};
 
 	private final Signal1<BigInteger> vnumSelected = new Signal1<BigInteger>();
-	private final Signal2<BigInteger, Integer> exitSelected = new Signal2<BigInteger, Integer>();
+	private final Signal3<BigInteger, Short, BigInteger> exitSelected = new Signal3<BigInteger, Short, BigInteger>();
 	private final Signal0 windowClosed = new Signal0();
 
 	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands) {
@@ -261,7 +260,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		});
 
 		vnumSelected.connect(SWAEdit.ref, "mapRoomVnumSelected(BigInteger)");
-		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,int)");
+		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,short,BigInteger)");
 
 		animator = new FPSAnimator[2];
 		animator[0] = new FPSAnimator(window, 30);
@@ -876,7 +875,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 							reportSelected = false;
 							selectedExit = exit;
 							selectedVnum = mr.getRoom().getVnum();
-							exitSelected.emit(selectedVnum, i);
+							exitSelected.emit(selectedVnum, exit.getDirection(), exit.getVnum());
 						}
 					} else {
 						gl.glColor4fv(objectColor, 0);

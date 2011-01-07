@@ -2830,14 +2830,18 @@ public class SWAEdit extends QMainWindow {
     }
     
     @SuppressWarnings("unused")
-    private void mapRoomExitSelected(BigInteger ownerRoomVnum, int exitIdx) {
+    private void mapRoomExitSelected(BigInteger ownerRoomVnum, short exitDirection, BigInteger destRoomVnum) {
     	if (!getCurrentRoom().getVnum().equals(ownerRoomVnum)) {
 	        mapRoomVnumSelected(ownerRoomVnum);
         }
-    	if (exitIdx >= 0 && exitIdx < ui.roomNavigatorComboBox.count()) {
-    		mapSelection = true;
-        	ui.roomExitNavigatorComboBox.setCurrentIndex(exitIdx);
-        	mapSelection = false;
+    	for (int idx = 0; idx < ui.roomExitNavigatorComboBox.count(); ++idx) {
+    		Exit exit = (Exit)ui.roomExitNavigatorComboBox.itemData(idx);
+    		if (exit.getDirection() == exitDirection && exit.getVnum().equals(destRoomVnum)) {
+        		mapSelection = true;
+            	ui.roomExitNavigatorComboBox.setCurrentIndex(idx);
+            	mapSelection = false;
+            	break;
+            }
         }
     }
 
