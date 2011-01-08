@@ -21,6 +21,8 @@ public class WelcomeScreen extends QWidget {
     
     public WelcomeScreen() {
         super(SWAEdit.ref);
+        setWindowTitle(SWAEdit.ref.windowTitle());
+        setWindowIcon(QApplication.windowIcon());
         img = new QImage("images/header.png");
         screen = QApplication.desktop().screenGeometry();
         setFixedSize(screen.size());

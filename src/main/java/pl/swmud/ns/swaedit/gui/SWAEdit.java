@@ -138,10 +138,10 @@ public class SWAEdit extends QMainWindow {
             System.setErr(new PrintStream(new FileOutputStream("swaedit_err.log",true)));
         } catch (FileNotFoundException e) {
         }
-        try {
-            System.setOut(new PrintStream(new FileOutputStream("swaedit_out.log",true)));
-        } catch (FileNotFoundException e) {
-        }
+//        try {
+//            System.setOut(new PrintStream(new FileOutputStream("swaedit_out.log",true)));
+//        } catch (FileNotFoundException e) {
+//        }
 
         QApplication.initialize(args);
         
@@ -560,16 +560,18 @@ public class SWAEdit extends QMainWindow {
     void setModified() {
         if (!modified) {
             modified = true;
-            if (!windowTitle().contains(" *")) {
-                setWindowTitle(windowTitle()+" *");
-            }
+            setWindowModified(true);
+//            if (!windowTitle().contains(" *")) {
+//                setWindowTitle(windowTitle()+" *");
+//            }
         }
     }
 
     void setNotModified() {
         if (modified) {
             modified = false;
-            setWindowTitle(windowTitle().replace(" *", ""));
+            setWindowModified(false);
+//            setWindowTitle(windowTitle().replace(" *", ""));
         }
     }
 

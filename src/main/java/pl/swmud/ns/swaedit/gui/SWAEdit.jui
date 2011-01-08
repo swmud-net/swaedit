@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>swaedit by swmud.pl</string>
+   <string>swaedit by swmud.pl [*]</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout">

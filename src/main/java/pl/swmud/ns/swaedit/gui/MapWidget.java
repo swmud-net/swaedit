@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.SortedMap;
 
 import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
+import pl.swmud.ns.swaedit.map.Animator;
 import pl.swmud.ns.swaedit.map.ExitWrapper;
 import pl.swmud.ns.swaedit.map.GLFont;
 import pl.swmud.ns.swaedit.map.MapRoom;
@@ -24,23 +24,25 @@ import pl.swmud.ns.swaedit.map.RoomCoords;
 import pl.swmud.ns.swaedit.map.RoomSpread;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.newt.event.MouseAdapter;
-import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.FPSAnimator;
-import com.trolltech.qt.QSignalEmitter;
+import com.trolltech.qt.core.QTimer;
+import com.trolltech.qt.core.Qt;
+import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QCloseEvent;
 import com.trolltech.qt.gui.QImage;
 import com.trolltech.qt.gui.QImage.Format;
+import com.trolltech.qt.gui.QKeyEvent;
+import com.trolltech.qt.gui.QMouseEvent;
+import com.trolltech.qt.gui.QWheelEvent;
+import com.trolltech.qt.opengl.QGLFormat;
+import com.trolltech.qt.opengl.QGLWidget;
 
-public class MapWidget extends QSignalEmitter implements GLEventListener, MapKeyHandler.Minion {
+public class MapWidget extends QGLWidget {
 	private int selectBufLen;
 
 	private static final float SENSITIVITY = 0.06f;
 	private static final int FPS = 30;
-	private final GLWindow window;
-	private FPSAnimator[] animator;
+	private QTimer animator;
+	private boolean animate = true;
 
 	private GL2 gl;
 	private GLU glu;
@@ -66,7 +68,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private float far = 500.0f;
 
 	private static final float PI2 = (float) Math.PI * .5f;
-	private static final float ROT_SENS_MULT = .03f;
+	private static final float ROT_SENS_MULT = .6f;
 	private static final float INITIAL_Z = -31.f;
 	private float dz = INITIAL_Z;
 	private float rot, angle, dx, dy, oldx, oldy, xRot, yRot, zRot, xAngle, yAngle, zAngle;
@@ -93,7 +95,6 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private boolean drawCross;
 	private boolean showHelp;
 	private int showIslandsLayers;
-	private int fulscreenWidth, fulscreenHeight;
 
 	private static final int BPP = 4; /* bytes per pixel */
 
@@ -133,143 +134,300 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	private final Signal3<BigInteger, Short, BigInteger> exitSelected = new Signal3<BigInteger, Short, BigInteger>();
 	private final Signal0 windowClosed = new Signal0();
 
+	@Override
+	protected void initializeGL() {
+		GLProfile profile = GLProfile.get(GLProfile.GL2);
+		GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
+
+		makeCurrent();
+		GLContext ctx = factory.createExternalGLContext();
+		ctx.makeCurrent();
+		gl = ctx.getGL().getGL2();
+		glu = GLU.createGLU(gl);
+
+		gl.glEnable(GL2.GL_DEPTH_TEST);
+		gl.glDepthFunc(GL2.GL_LEQUAL);
+		gl.glEnable(GL2.GL_BLEND);
+		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glEnable(GL2.GL_MULTISAMPLE);
+		gl.glEnable(GL2.GL_TEXTURE_2D);
+		gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
+		gl.glShadeModel(GL2.GL_SMOOTH);
+
+		// if (1==1) {
+		// gl.glEnable(GL2.GL_LIGHTING);
+		// float[] ambient = { 1.f, 1.f, 1.f, 1.f };
+		// gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
+		// gl.glEnable(GL2.GL_COLOR_MATERIAL);
+		// gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE);
+		// }
+
+		// int[] buf = new int[1];
+		// gl.glGetIntegerv(GL2.GL_SAMPLE_BUFFERS, buf, 0);
+		// System.out.println("sampleBuffers: " + buf[0]);
+		// gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
+		// System.out.println("samples:" + buf[0]);
+
+		Font f = new Font(Font.SERIF, 0, 16);
+		if (f != null) {
+			glFont = new GLFont(f, gl, 0, 0);
+		}
+	}
+
+	@Override
+	protected void paintGL() {
+		if (multisample) {
+			gl.glEnable(GL2.GL_MULTISAMPLE);
+		} else {
+			gl.glDisable(GL2.GL_MULTISAMPLE);
+		}
+		if (selection) {
+			select(cx, cy);
+			selection = false;
+		}
+		// if (hovering) {
+		// select(mx, my);
+		// hovering = false;
+		// }
+		drawWorld();
+	}
+
+	@Override
+	protected void resizeGL(int w, int h) {
+		this.w = w;
+		if (h == 0) {
+			h = 1;
+		}
+		this.h = h;
+
+		aspect = w / h;
+
+		gl.glViewport(0, 0, w, h);
+
+		gl.glMatrixMode(GL2.GL_PROJECTION);
+		gl.glLoadIdentity();
+
+		glu.gluPerspective(fov, aspect, near, far);
+	}
+
+	private static QGLFormat getQGLFormat() {
+		QGLFormat f = QGLFormat.defaultFormat();
+		f.setSampleBuffers(true);
+		f.setSamples(4);
+		f.setAlpha(true);
+		f.setAlphaBufferSize(8);
+		return f;
+	}
+	
 	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands) {
+		super(getQGLFormat());
 		this.islandRooms = islandRooms;
 		this.maxIslands = maxIslands;
 		setupIsland(currentIsland);
 		setScreenShotParent();
-
-		GLProfile profile = GLProfile.get(GLProfile.GL2);
-		GLCapabilities caps = new GLCapabilities(profile);
-		caps.setSampleBuffers(true);
-		caps.setNumSamples(4);
-		caps.setAlphaBits(8);
-
-		window = GLWindow.create(caps);
-		// window.enablePerfLog(true);
-		window.setSize(800, 600);
-		window.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowDestroyNotify(WindowEvent e) {
-				super.windowDestroyNotify(e);
-				// System.exit(0);
-				windowClosed.connect(SWAEdit.ref, "mapClosed()");
-				windowClosed.emit();
-			}
-		});
-		window.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON4) {
-					dz += 1;
-				} else if (e.getButton() == MouseEvent.BUTTON5) {
-					dz -= 1;
-				} else if (e.getButton() == MouseEvent.BUTTON1) {
-					cx = e.getX();
-					cy = e.getY();
-					selection = true;
-					reportSelected = true;
-				}
-			}
-
-			@Override
-			public void mouseWheelMoved(MouseEvent e) {
-				dz += (e.getWheelRotation() > 0 ? 1 : -1);
-			}
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON1) {
-					float px = (float) e.getX();
-					if (px > oldx) {
-						dx += SENSITIVITY;
-					} else if (px < oldx) {
-						dx -= SENSITIVITY;
-					}
-					oldx = px;
-
-					float py = (float) e.getY();
-					if (py < oldy) {
-						dy += SENSITIVITY;
-					} else if (py > oldy) {
-						dy -= SENSITIVITY;
-					}
-					oldy = py;
-				} else if (e.getButton() == MouseEvent.BUTTON3) {
-					float px = (float) e.getX();
-					float py = (float) e.getY();
-					if (xRotAxis) {
-						if (py < oldy) {
-							xRot -= SENSITIVITY * ROT_SENS_MULT;
-						} else if (py > oldy) {
-							xRot += SENSITIVITY * ROT_SENS_MULT;
-						}
-
-						if (xRot > PI2) {
-							xRot = .0f;
-						} else if (xRot < .0f) {
-							xRot = PI2;
-						}
-
-						xAngle = 360.f * Math.abs((float) Math.sin(xRot));
-					}
-
-					if (yRotAxis) {
-						if (px > oldx) {
-							yRot += SENSITIVITY * ROT_SENS_MULT;
-						} else if (px < oldx) {
-							yRot -= SENSITIVITY * ROT_SENS_MULT;
-						}
-
-						if (yRot > PI2) {
-							yRot = .0f;
-						} else if (yRot < .0f) {
-							yRot = PI2;
-						}
-
-						yAngle = 360.f * Math.abs((float) Math.sin(yRot));
-					}
-
-					if (zRotAxis) {
-						if (py < oldy) {
-							zRot += SENSITIVITY * ROT_SENS_MULT;
-						} else if (py > oldy) {
-							zRot -= SENSITIVITY * ROT_SENS_MULT;
-						}
-
-						if (zRot > PI2) {
-							zRot = .0f;
-						} else if (zRot < .0f) {
-							zRot = PI2;
-						}
-
-						zAngle = 360.f * Math.abs((float) Math.sin(zRot));
-					}
-
-					oldx = px;
-					oldy = py;
-				}
-			}
-			/*
-			 * @Override public void mouseMoved(MouseEvent e) { int px =
-			 * e.getX(); int py = e.getY(); float[] mPos = translateMouse(px,
-			 * py, w, h); mx = px;// mPos[0]*Math.abs(dz); my = py;//
-			 * mPos[1]*Math.abs(dz); // hovering = true; // reportHovered =
-			 * true; }
-			 */
-		});
+		
+		setWindowTitle(SWAEdit.ref.area.getHead().getName());
+		setWindowIcon(QApplication.windowIcon());
+		resize(800, 600);
 
 		vnumSelected.connect(SWAEdit.ref, "mapRoomVnumSelected(BigInteger)");
 		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,short,BigInteger)");
 
-		animator = new FPSAnimator[2];
-		animator[0] = new FPSAnimator(window, 30);
-		animator[1] = new FPSAnimator(window, 30);
-
-		window.addKeyListener(new MapKeyHandler(this, currentIsland, this.maxIslands));
-		window.addGLEventListener(this);
+		animator = new Animator(this, 30);
 	}
 
+	@Override
+	protected void closeEvent(QCloseEvent e) {
+		animator.stop();
+		windowClosed.connect(SWAEdit.ref, "mapClosed()");
+		windowClosed.emit();
+	}
+
+	@Override
+	protected void keyPressEvent(QKeyEvent e) {
+		int kc = e.key();
+		if (kc == Qt.Key.Key_Space.value()) {
+			animate = !animate;
+			e.accept();
+		} else if (kc == 'd' || kc == Qt.Key.Key_D.value()) {
+			drawDistantExits = !drawDistantExits;
+			e.accept();
+		} else if (kc == 'm' || kc == Qt.Key.Key_M.value()) {
+			multisample = !multisample;
+			e.accept();
+		} else if (kc == 'k' || kc == Qt.Key.Key_K.value()) {
+			drawCross = !drawCross;
+			e.accept();
+		} else if (kc == 'c' || kc == Qt.Key.Key_C.value()) {
+			center();
+			e.accept();
+		} else if (kc == 'h' || kc == Qt.Key.Key_H.value()) {
+			showHelp = !showHelp;
+			e.accept();
+		} else if (kc == 'f' || kc == Qt.Key.Key_F.value()) {
+			if (isFullScreen()) {
+				showNormal();
+			} else {
+				showFullScreen();
+			}
+			e.accept();
+		} else if (kc == Qt.Key.Key_Left.value()) {
+			if (currentIsland > 0) {
+				setupIsland(--currentIsland);
+			}
+			e.accept();
+		} else if (kc == Qt.Key.Key_Right.value()) {
+			if (currentIsland < maxIslands - 1) {
+				setupIsland(++currentIsland);
+			}
+			e.accept();
+		} else if (kc == Qt.Key.Key_Up.value()) {
+			incLayer();
+			e.accept();
+		} else if (kc == Qt.Key.Key_Down.value()) {
+			decLayer();
+			e.accept();
+		} else if (kc == Qt.Key.Key_F12.value()) {
+			screenShot();
+			e.accept();
+		} else if (kc == Qt.Key.Key_F11.value()) {
+			transparentScreenShot();
+			e.accept();
+		} else if (kc == Qt.Key.Key_Shift.value()) {
+			xRotAxis = true;
+			e.accept();
+		} else if (kc == Qt.Key.Key_Control.value()) {
+			yRotAxis = true;
+			e.accept();
+		} else if (kc == Qt.Key.Key_Alt.value()) {
+			zRotAxis = true;
+			e.accept();
+		} else {
+			e.ignore();
+		}
+	}
+
+	@Override
+	protected void keyReleaseEvent(QKeyEvent e) {
+		int kc = e.key();
+		if (kc == Qt.Key.Key_Shift.value()) {
+			xRotAxis = false;
+			e.accept();
+		} else if (kc == Qt.Key.Key_Control.value()) {
+			yRotAxis = false;
+			e.accept();
+		} else if (kc == Qt.Key.Key_Alt.value()) {
+			zRotAxis = false;
+			e.accept();
+		} else {
+			e.ignore();
+		}
+	}
+
+	@Override
+	protected void wheelEvent(QWheelEvent e) {
+		dz -= e.delta() / 100;
+		e.accept();
+	}
+
+	@Override
+	protected void mousePressEvent(QMouseEvent e) {
+		if (e.button() == Qt.MouseButton.LeftButton) {
+			oldx = cx = e.x();
+			oldy = cy = e.y();
+			e.accept();
+		} else {
+			e.ignore();
+		}
+	}
+	
+	@Override
+	protected void mouseReleaseEvent(QMouseEvent e) {
+		if (e.button() == Qt.MouseButton.LeftButton) {
+			int ex = e.x();
+			int ey = e.y();
+			if (Math.abs(cx-ex) < 3 && Math.abs(cy-ey) < 3) {
+				cx = ex;
+				cy = ey;
+				selection = true;
+				reportSelected = true;
+            }
+			e.accept();
+		} else {
+			e.ignore();
+		}
+	}
+
+	@Override
+	protected void mouseMoveEvent(QMouseEvent e) {
+		if (e.buttons().isSet(Qt.MouseButton.LeftButton)) {
+			float p = (float) e.x();
+			dx -= (p-oldx)/w*dz;
+			oldx = p;
+
+			p = (float) e.y();
+			dy += (p-oldy)/h*dz;
+			oldy = p;
+			e.accept();
+		} else if (e.buttons().isSet(Qt.MouseButton.RightButton)) {
+			float px = (float) e.x();
+			float py = (float) e.y();
+			if (xRotAxis) {
+				if (py < oldy) {
+					xRot -= SENSITIVITY * ROT_SENS_MULT;
+				} else if (py > oldy) {
+					xRot += SENSITIVITY * ROT_SENS_MULT;
+				}
+
+				if (xRot > PI2) {
+					xRot = .0f;
+				} else if (xRot < .0f) {
+					xRot = PI2;
+				}
+
+				xAngle = 360.f * Math.abs((float) Math.sin(xRot));
+			}
+
+			if (yRotAxis) {
+				if (px > oldx) {
+					yRot += SENSITIVITY * ROT_SENS_MULT;
+				} else if (px < oldx) {
+					yRot -= SENSITIVITY * ROT_SENS_MULT;
+				}
+
+				if (yRot > PI2) {
+					yRot = .0f;
+				} else if (yRot < .0f) {
+					yRot = PI2;
+				}
+
+				yAngle = 360.f * Math.abs((float) Math.sin(yRot));
+			}
+
+			if (zRotAxis) {
+				if (py < oldy) {
+					zRot += SENSITIVITY * ROT_SENS_MULT;
+				} else if (py > oldy) {
+					zRot -= SENSITIVITY * ROT_SENS_MULT;
+				}
+
+				if (zRot > PI2) {
+					zRot = .0f;
+				} else if (zRot < .0f) {
+					zRot = PI2;
+				}
+
+				zAngle = 360.f * Math.abs((float) Math.sin(zRot));
+			}
+
+			oldx = px;
+			oldy = py;
+			e.accept();
+		} else {
+			e.ignore();
+		}
+	}
+	
 	private void setupIsland(int islandNo) {
 		currentIsland = islandNo;
 		currentIslandSize = islandRooms.get(islandNo).size();
@@ -288,19 +446,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		showIslandsLayers();
 	}
 
-	public void setCurrentIsland(int islandNo) {
-		setupIsland(islandNo);
-	}
-
-	public void rotationStopped() {
-		toggleAnimator();
-	}
-
-	public void drawDistantExits() {
-		drawDistantExits = !drawDistantExits;
-	}
-
-	public void decLayer() {
+	private void decLayer() {
 		if (currentLayer > 0) {
 			--currentLayer;
 			selected = -1;
@@ -308,7 +454,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		}
 	}
 
-	public void incLayer() {
+	private void incLayer() {
 		if (currentLayer < maxLayer) {
 			++currentLayer;
 			selected = -1;
@@ -316,68 +462,20 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		}
 	}
 
-	public void multisampling() {
-		multisample = !multisample;
-	}
-
-	public void drawCross() {
-		drawCross = !drawCross;
-	}
-
-	public void center() {
+	private void center() {
 		dz = INITIAL_Z;
 		rot = dx = dy = angle = oldx = oldy = xRot = yRot = zRot = xAngle = yAngle = zAngle = .0f;
 	}
 
-	public void showHelp() {
-		showHelp = !showHelp;
-	}
-
-	public void showFullscreen() {
-		if (!window.isFullscreen()) {
-			fulscreenWidth = w;
-			fulscreenHeight = h;
-			window.setFullscreen(true);
-		} else {
-			window.setFullscreen(false);
-			window.setSize(fulscreenWidth, fulscreenHeight);
-
-		}
-	}
-
-	public void screenShot() {
+	private void screenShot() {
 		screenShotPath = getScreenShotPath();
 		readPixels = true;
 	}
 
-	public void transparentScreenShot() {
+	private void transparentScreenShot() {
 		screenShotPath = getScreenShotPath();
 		readPixels = true;
 		transparentShot = true;
-	}
-
-	public void xRotOff() {
-		xRotAxis = false;
-	}
-
-	public void xRotOn() {
-		xRotAxis = true;
-	}
-
-	public void yRotOff() {
-		yRotAxis = false;
-	}
-
-	public void yRotOn() {
-		yRotAxis = true;
-	}
-
-	public void zRotOff() {
-		zRotAxis = false;
-	}
-
-	public void zRotOn() {
-		zRotAxis = true;
 	}
 
 	private void setScreenShotParent() {
@@ -422,25 +520,15 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	public void show(int x, int y) {
-		if (!window.isVisible()) {
-			window.setPosition(x, y);
-			window.setVisible(true);
-			animator[0].start();
+		if (isHidden()) {
+			move(x, y);
+			show();
+			animator.start();
 		}
 	}
 
 	private void showIslandsLayers() {
 		showIslandsLayers = FPS * 2;
-	}
-
-	private void toggleAnimator() {
-		if (animator[0].isAnimating()) {
-			animator[0].stop();
-			animator[1].start();
-		} else {
-			animator[1].stop();
-			animator[0].start();
-		}
 	}
 
 	private int getXMiddle(int islandNo) {
@@ -507,8 +595,8 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 						selectedExit = exit;
 						selected = shift;
 						if (exit.isDistant() && !drawDistantExits) {
-	                        drawDistantExits = true;
-                        }
+							drawDistantExits = true;
+						}
 						return;
 					}
 					exitNo++;
@@ -586,7 +674,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 	}
 
 	private void drawWorld() {
-		if (animator[0].isAnimating()) {
+		if (animate) {
 			rot += 0.002;
 			if (rot > Math.PI / 2.f) {
 				rot = .0f;
@@ -617,6 +705,7 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 			if (selected >= 0) {
 				if (selectedVnum != null) {
 					if (selected < currentIslandSize) {
+						gl.glColor3f(1.f, 1.f, 1.f);
 						drawText("vnum selected: " + selectedVnum.toString(), -1.f, -.98f);
 					} else if (selectedExit != null) {
 						drawText("exit selected: " + selectedVnum.toString() + "->" + selectedExit.getDirectionName()
@@ -991,80 +1080,6 @@ public class MapWidget extends QSignalEmitter implements GLEventListener, MapKey
 		glu.gluDisk(quadratic, 0, 0.1, 32, 32);
 
 		glu.gluDeleteQuadric(quadratic);
-	}
-
-	public void display(GLAutoDrawable d) {
-		if (multisample) {
-			gl.glEnable(GL2.GL_MULTISAMPLE);
-		} else {
-			gl.glDisable(GL2.GL_MULTISAMPLE);
-		}
-		if (selection) {
-			select(cx, cy);
-			selection = false;
-		}
-		// if (hovering) {
-		// select(mx, my);
-		// hovering = false;
-		// }
-		drawWorld();
-	}
-
-	public void dispose(GLAutoDrawable d) {
-	}
-
-	public void init(GLAutoDrawable d) {
-		gl = d.getGL().getGL2();
-		glu = GLU.createGLU(gl);
-
-		gl.glEnable(GL2.GL_DEPTH_TEST);
-		gl.glDepthFunc(GL2.GL_LEQUAL);
-		gl.glEnable(GL2.GL_BLEND);
-		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glEnable(GL2.GL_MULTISAMPLE);
-		gl.glEnable(GL2.GL_TEXTURE_2D);
-		gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);
-		gl.glShadeModel(GL2.GL_SMOOTH);
-
-		// if (1==1) {
-		// gl.glEnable(GL2.GL_LIGHTING);
-		// float[] ambient = { 1.f, 1.f, 1.f, 1.f };
-		// gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
-		// gl.glEnable(GL2.GL_COLOR_MATERIAL);
-		// gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE);
-		// }
-
-		// int[] buf = new int[1];
-		// gl.glGetIntegerv(GL2.GL_SAMPLE_BUFFERS, buf, 0);
-		// System.out.println("sampleBuffers: " + buf[0]);
-		// gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
-		// System.out.println("samples:" + buf[0]);
-
-		Font f = new Font(Font.SERIF, 0, 16);
-		if (f != null) {
-			glFont = new GLFont(f, gl, 0, 0);
-		}
-	}
-
-	public void reshape(GLAutoDrawable d, int x, int y, int w, int h) {
-		this.w = w;
-		if (h == 0) {
-			h = 1;
-		}
-		this.h = h;
-
-		aspect = w / h;
-
-		update();
-	}
-
-	private void update() {
-		gl.glViewport(0, 0, w, h);
-
-		gl.glMatrixMode(GL2.GL_PROJECTION);
-		gl.glLoadIdentity();
-
-		glu.gluPerspective(fov, aspect, near, far);
 	}
 
 	public void setOrthoOn() {
