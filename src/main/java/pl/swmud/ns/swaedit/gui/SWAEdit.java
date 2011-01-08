@@ -138,10 +138,10 @@ public class SWAEdit extends QMainWindow {
             System.setErr(new PrintStream(new FileOutputStream("swaedit_err.log",true)));
         } catch (FileNotFoundException e) {
         }
-//        try {
-//            System.setOut(new PrintStream(new FileOutputStream("swaedit_out.log",true)));
-//        } catch (FileNotFoundException e) {
-//        }
+        try {
+            System.setOut(new PrintStream(new FileOutputStream("swaedit_out.log",true)));
+        } catch (FileNotFoundException e) {
+        }
 
         QApplication.initialize(args);
         
