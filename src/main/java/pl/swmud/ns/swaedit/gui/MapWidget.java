@@ -219,8 +219,8 @@ public class MapWidget extends QGLWidget {
 		return f;
 	}
 	
-	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands) {
-		super(getQGLFormat());
+	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands, boolean defaultFormat) {
+		super(defaultFormat ? QGLFormat.defaultFormat() : getQGLFormat());
 		this.islandRooms = islandRooms;
 		this.maxIslands = maxIslands;
 		setupIsland(currentIsland);

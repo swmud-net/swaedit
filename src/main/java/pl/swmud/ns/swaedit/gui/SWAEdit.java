@@ -366,7 +366,7 @@ public class SWAEdit extends QMainWindow {
         }
         Mapper mapper = new Mapper(area);
         mapWidget = mapper.makeMap();
-        statusBar().showMessage("Map prepared.", 5000);
+        statusBar().showMessage(mapWidget == null ? "Map couldn't be launched." : "Map prepared.", 5000);
     }
     
     @SuppressWarnings("unused")

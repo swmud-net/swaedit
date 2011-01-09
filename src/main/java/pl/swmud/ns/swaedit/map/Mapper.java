@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.media.opengl.GLException;
+
 import pl.swmud.ns.swaedit.gui.MapWidget;
 import pl.swmud.ns.swmud._1_0.area.Area;
 import pl.swmud.ns.swmud._1_0.area.Rooms.Room;
@@ -41,14 +43,25 @@ public class Mapper {
 		
 		checkCoords();
 
-		// System.out.println("islands: " + islandNo);
-		// int i = 0;
-		// System.out.println("width: " + getWidth(i));
-		// System.out.println("height: " + getHeight(i));
-		// System.out.println("depth: " + getDepth(i));
-
-		MapWidget mw = new MapWidget(islandRooms, 0, islandNo);
-		mw.show(0, 0);
+		MapWidget mw = null;
+		try {
+			mw = new MapWidget(islandRooms, 0, islandNo, false);
+			mw.show(0, 0);
+        } catch (GLException e) {
+        	if (mw != null) {
+            	mw.close();
+            }
+        	try {
+            	mw = new MapWidget(islandRooms, 0, islandNo, true);
+    			mw.show(0, 0);
+            } catch (GLException e1) {
+            	e1.printStackTrace();
+            	if (mw != null) {
+                	mw.close();
+                }
+            	mw = null;
+            }
+        }
 		return mw;
 	}
 
