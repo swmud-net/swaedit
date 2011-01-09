@@ -47,11 +47,6 @@
 			<artifactId>nativewindow.all-noawt</artifactId>
 			<version>${jogl.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.jogamp.jogl</groupId>
-			<artifactId>newt.all-noawt</artifactId>
-			<version>${jogl.version}</version>
-		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>.</sourceDirectory>
@@ -133,12 +128,6 @@
 									<artifactId>nativewindow.all-noawt</artifactId>
 									<version>${jogl.version}</version>
 									<destFileName>nativewindow.all-noawt.jar</destFileName>
-								</artifactItem>
-								<artifactItem>
-									<groupId>com.jogamp.jogl</groupId>
-									<artifactId>newt.all-noawt</artifactId>
-									<version>${jogl.version}</version>
-									<destFileName>newt.all-noawt.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
 						</configuration>
