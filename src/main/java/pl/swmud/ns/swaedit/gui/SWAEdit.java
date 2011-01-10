@@ -1663,7 +1663,7 @@ public class SWAEdit extends QMainWindow {
         mob.setLevel(0);
         mob.setLong("");
         mob.setName("m"+vnum);
-        mob.setPosition((short)0);
+        mob.setPosition((short)8);
         mob.setPrograms(of.createPrograms());
         mob.setRace((String)((JAXBElement<String>)races.getName().get(0)).getValue());
         Sectiona sa = of.createSectiona();
