@@ -136,15 +136,6 @@ public class MapWidget extends QGLWidget {
 
 	@Override
 	protected void initializeGL() {
-		GLProfile profile = GLProfile.get(GLProfile.GL2);
-		GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
-
-		makeCurrent();
-		GLContext ctx = factory.createExternalGLContext();
-		ctx.makeCurrent();
-		gl = ctx.getGL().getGL2();
-		glu = GLU.createGLU(gl);
-
 		gl.glEnable(GL2.GL_DEPTH_TEST);
 		gl.glDepthFunc(GL2.GL_LEQUAL);
 		gl.glEnable(GL2.GL_BLEND);
@@ -226,6 +217,14 @@ public class MapWidget extends QGLWidget {
 		setupIsland(currentIsland);
 		setScreenShotParent();
 		
+		GLProfile profile = GLProfile.get(GLProfile.GL2);
+		GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
+		makeCurrent();
+		GLContext ctx = factory.createExternalGLContext();
+		ctx.makeCurrent();
+		gl = ctx.getGL().getGL2();
+		glu = GLU.createGLU(gl);
+
 		setWindowTitle(SWAEdit.ref.area.getHead().getName());
 		setWindowIcon(QApplication.windowIcon());
 		resize(800, 600);
