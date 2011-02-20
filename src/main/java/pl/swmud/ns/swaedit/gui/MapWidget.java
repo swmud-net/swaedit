@@ -947,7 +947,7 @@ public class MapWidget extends QGLWidget {
 
 				case 9: /* south-west */
 					gl.glRotatef(45, 0, -1, 0);
-					gl.glTranslatef(.7f, .5f, -2.3f);
+					gl.glTranslatef(.7f, .5f, .5f);
 					gl.glScalef(1, 1, 1.8f);
 					break;
 
