@@ -47,6 +47,8 @@ public class MapWidget extends QGLWidget {
 	private GL2 gl;
 	private GLU glu;
 
+	private int glList;
+	
 	private boolean multisample = true;
 	private static final float ALPHA = .5f;
 
@@ -232,6 +234,8 @@ public class MapWidget extends QGLWidget {
 		vnumSelected.connect(SWAEdit.ref, "mapRoomVnumSelected(BigInteger)");
 		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,short,BigInteger)");
 
+		genLists();
+		
 		animator = new Animator(this, 30);
 	}
 
@@ -692,7 +696,7 @@ public class MapWidget extends QGLWidget {
 		drawWindRose();
 
 		if (drawCross) {
-			drawCrossGL();
+			gl.glCallList(glList+4);
 		}
 
 		if (selected >= 0 && selectedVnum != null || showHelp || showIslandsLayers > 0) {
@@ -740,19 +744,6 @@ public class MapWidget extends QGLWidget {
 		}
 
 		cleanDrawnMark();
-	}
-
-	private void drawCrossGL() {
-		gl.glPushMatrix();
-		gl.glTranslatef(0, 0, -1);
-		gl.glColor3f(1, 1, 1);
-		gl.glBegin(GL2.GL_LINES);
-		gl.glVertex3f(-1, 0, 0);
-		gl.glVertex3f(1, 0, 0);
-		gl.glVertex3f(0, -1, 0);
-		gl.glVertex3f(0, 1, 0);
-		gl.glEnd();
-		gl.glPopMatrix();
 	}
 
 	private void takeScreenshot() {
@@ -864,7 +855,7 @@ public class MapWidget extends QGLWidget {
 					}
 				}
 
-				drawRoom();
+				gl.glCallList(glList);
 
 				drawExits(mr);
 				gl.glPopMatrix();
@@ -885,10 +876,6 @@ public class MapWidget extends QGLWidget {
 	}
 
 	private void drawExits(MapRoom mr) {
-		GLUquadric quadratic = glu.gluNewQuadric();
-		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
-		glu.gluQuadricTexture(quadratic, true);
-
 		int shift;
 		int i = 0;
 		for (ExitWrapper exit : mr.getMapRooms().keySet()) {
@@ -970,9 +957,9 @@ public class MapWidget extends QGLWidget {
 					}
 
 					if (exit.isTwoWay()) {
-						glu.gluCylinder(quadratic, 0.2, 0.2, 1, 32, 32);
+						gl.glCallList(glList+1);
 					} else {
-						glu.gluCylinder(quadratic, 0.1, 0.1, 1, 32, 32);
+						gl.glCallList(glList+2);
 					}
 				}
 				exit.setDrawn();
@@ -982,11 +969,13 @@ public class MapWidget extends QGLWidget {
 			exitShift++;
 			i++;
 		}
-
-		glu.gluDeleteQuadric(quadratic);
 	}
 
-	private void drawRoom() {
+	private void genLists() {
+		glList = gl.glGenLists(5);
+		
+		/* room list */
+		gl.glNewList(glList, GL2.GL_COMPILE);
 		gl.glBegin(GL2.GL_QUADS);
 
 		gl.glVertex3f(0, 0, 0);
@@ -1020,20 +1009,25 @@ public class MapWidget extends QGLWidget {
 		gl.glVertex3f(0, 1, 1);
 
 		gl.glEnd();
-	}
-
-	private void drawWindRose() {
-		gl.glPushMatrix();
-		final float fScale = .1f;
-		final float zRose = -2.f;
-		float[] lb = getLeftBottom(zRose);
-		gl.glTranslatef(lb[0] + fScale, lb[1] + fScale, zRose);
-		gl.glScalef(fScale, fScale, fScale);
-		gl.glRotatef(xAngle, 1.f, .0f, .0f);
-		gl.glRotatef(yAngle, .0f, 1.f, .0f);
-		gl.glRotatef(zAngle, .0f, .0f, 1.f);
-		gl.glRotatef(angle, 1, 1, 1);
-
+		gl.glEndList();
+		
+		/* two way exit list */
+		gl.glNewList(glList+1, GL2.GL_COMPILE);
+		GLUquadric quadratic = glu.gluNewQuadric();
+		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
+		glu.gluQuadricTexture(quadratic, true);
+		glu.gluCylinder(quadratic, 0.2, 0.2, 1, 32, 32);
+		gl.glEndList();
+		
+		/* one way exit list */
+		gl.glNewList(glList+2, GL2.GL_COMPILE);
+		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
+		glu.gluQuadricTexture(quadratic, true);
+		glu.gluCylinder(quadratic, 0.1, 0.1, 1, 32, 32);
+		gl.glEndList();
+		
+		/* wind rose list */
+		gl.glNewList(glList+3, GL2.GL_COMPILE);
 		gl.glBegin(GL2.GL_LINES);
 		gl.glColor4f(1, 0, 0, 0.9f);
 		gl.glVertex3f(0, 0, 0);
@@ -1052,33 +1046,55 @@ public class MapWidget extends QGLWidget {
 		gl.glTranslatef(1, 0, 0);
 		gl.glRotatef(90, 0, 1, 0);
 		gl.glColor4f(1, 0, 0, 1);
-		drawArrow();
+		glu.gluCylinder(quadratic, 0.1, 0, 0.3, 32, 32);
+		glu.gluDisk(quadratic, 0, 0.1, 32, 32);
 		gl.glPopMatrix();
 
 		gl.glPushMatrix();
 		gl.glTranslatef(0, 1, 0);
 		gl.glRotatef(90, -1, 0, 0);
 		gl.glColor4f(1, 1, 0, 1);
-		drawArrow();
+		glu.gluCylinder(quadratic, 0.1, 0, 0.3, 32, 32);
+		glu.gluDisk(quadratic, 0, 0.1, 32, 32);
 		gl.glPopMatrix();
 
 		gl.glPushMatrix();
 		gl.glTranslatef(0, 0, 1);
 		gl.glColor4f(0, 0, 1, 1);
-		drawArrow();
-		gl.glPopMatrix();
-		gl.glPopMatrix();
-	}
-
-	private void drawArrow() {
-		GLUquadric quadratic = glu.gluNewQuadric();
-		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
-		glu.gluQuadricTexture(quadratic, true);
-
 		glu.gluCylinder(quadratic, 0.1, 0, 0.3, 32, 32);
 		glu.gluDisk(quadratic, 0, 0.1, 32, 32);
+		gl.glPopMatrix();		
+		gl.glEndList();
 
-		glu.gluDeleteQuadric(quadratic);
+		/* cross list */
+		gl.glNewList(glList+4, GL2.GL_COMPILE);
+		gl.glPushMatrix();
+		gl.glTranslatef(0, 0, -1);
+		gl.glBegin(GL2.GL_LINES);
+		gl.glColor3f(1, 1, 1);
+		gl.glVertex3f(-1, 0, 0);
+		gl.glVertex3f(1, 0, 0);
+		gl.glVertex3f(0, -1, 0);
+		gl.glVertex3f(0, 1, 0);
+		gl.glEnd();
+		gl.glPopMatrix();
+		gl.glEndList();
+	}
+
+	private void drawWindRose() {
+		gl.glPushMatrix();
+		final float fScale = .1f;
+		final float zRose = -2.f;
+		float[] lb = getLeftBottom(zRose);
+		gl.glTranslatef(lb[0] + fScale, lb[1] + fScale, zRose);
+		gl.glScalef(fScale, fScale, fScale);
+		gl.glRotatef(xAngle, 1.f, .0f, .0f);
+		gl.glRotatef(yAngle, .0f, 1.f, .0f);
+		gl.glRotatef(zAngle, .0f, .0f, 1.f);
+		gl.glRotatef(angle, 1, 1, 1);
+
+		gl.glCallList(glList+3);		
+		gl.glPopMatrix();
 	}
 
 	public void setOrthoOn() {
