@@ -77,7 +77,7 @@ public class MapWidget extends QGLWidget {
 	private boolean xRotAxis, yRotAxis, zRotAxis;
 
 	private SortedMap<Integer, List<MapRoom>> islandRooms;
-	private float xMiddle, yMiddle;
+	private float xMiddle, yMiddle, zMiddle;
 	private int currentIsland;
 	private int currentIslandSize;
 	private final int maxIslands;
@@ -437,6 +437,7 @@ public class MapWidget extends QGLWidget {
 		selectBufLen = currentIslandSize * 4 + 5;
 		xMiddle = getXMiddle(islandNo);
 		yMiddle = getYMiddle(islandNo);
+		zMiddle = getZMiddle(islandNo);
 		selected = -1;
 		currentLayer = 0;
 		maxLayer = 0;
@@ -548,6 +549,15 @@ public class MapWidget extends QGLWidget {
 			@Override
 			public int getValue(RoomCoords coords) {
 				return coords.getY();
+			}
+		}.getMiddle();
+	}
+
+	private int getZMiddle(int islandNo) {
+		return new RoomSpread(islandRooms.get(islandNo)) {
+			@Override
+			public int getValue(RoomCoords coords) {
+				return coords.getZ();
 			}
 		}.getMiddle();
 	}
@@ -816,7 +826,7 @@ public class MapWidget extends QGLWidget {
 		gl.glRotatef(zAngle, .0f, .0f, 1.f);
 		gl.glRotatef(angle, 1.f, 1.f, 1.f);
 		RoomCoords coords = island.get(0).getCoords();
-		gl.glTranslatef(-.5f + xMiddle - coords.getX(), -.5f + yMiddle - coords.getY(), -.5f);
+		gl.glTranslatef(-.5f + xMiddle - coords.getX(), -.5f + yMiddle - coords.getY(), -.5f + zMiddle);
 		gl.glPushName(-1);
 		int i = 0;
 		exitShift = 0;
