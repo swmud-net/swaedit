@@ -48,7 +48,7 @@ public class MapWidget extends QGLWidget {
 	private GLU glu;
 
 	private int glList;
-	
+
 	private boolean multisample = true;
 	private static final float ALPHA = .5f;
 
@@ -80,7 +80,7 @@ public class MapWidget extends QGLWidget {
 	private float xMiddle, yMiddle, zMiddle;
 	private int currentIsland;
 	private int currentIslandSize;
-	private final int maxIslands;
+	private int maxIslands;
 	private int currentLayer;
 	private int maxLayer;
 
@@ -118,6 +118,7 @@ public class MapWidget extends QGLWidget {
 			add("k      - toggle cross");
 			add("c      - reset to center");
 			add("f      - toggle fullscreen");
+			add("r      - refresh map");
 			add("right  - next island");
 			add("left   - previous island");
 			add("up     - next layer");
@@ -135,6 +136,7 @@ public class MapWidget extends QGLWidget {
 	private final Signal1<BigInteger> vnumSelected = new Signal1<BigInteger>();
 	private final Signal3<BigInteger, Short, BigInteger> exitSelected = new Signal3<BigInteger, Short, BigInteger>();
 	private final Signal0 windowClosed = new Signal0();
+	private final Signal0 mapRefreshed = new Signal0();
 
 	@Override
 	protected void initializeGL() {
@@ -209,16 +211,17 @@ public class MapWidget extends QGLWidget {
 		f.setSamples(4);
 		f.setAlpha(true);
 		f.setAlphaBufferSize(8);
+		f.setDoubleBuffer(true);
 		return f;
 	}
-	
-	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands, boolean defaultFormat) {
+
+	public MapWidget(SortedMap<Integer, List<MapRoom>> islandRooms, int currentIsland, int maxIslands,
+	        boolean defaultFormat) {
 		super(defaultFormat ? QGLFormat.defaultFormat() : getQGLFormat());
-		this.islandRooms = islandRooms;
-		this.maxIslands = maxIslands;
-		setupIsland(currentIsland);
-		setScreenShotParent();
+		setAutoBufferSwap(false);
 		
+		this.currentIsland = currentIsland;
+
 		GLProfile profile = GLProfile.get(GLProfile.GL2);
 		GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
 		makeCurrent();
@@ -227,16 +230,29 @@ public class MapWidget extends QGLWidget {
 		gl = ctx.getGL().getGL2();
 		glu = GLU.createGLU(gl);
 
-		setWindowTitle(SWAEdit.ref.area.getHead().getName());
-		setWindowIcon(QApplication.windowIcon());
 		resize(800, 600);
+		animator = new Animator(this, 30);
 
 		vnumSelected.connect(SWAEdit.ref, "mapRoomVnumSelected(BigInteger)");
 		exitSelected.connect(SWAEdit.ref, "mapRoomExitSelected(BigInteger,short,BigInteger)");
+		mapRefreshed.connect(SWAEdit.ref, "mapRefreshed()");
 
+		refreshMap(islandRooms, maxIslands);
+	}
+
+	public void refreshMap(SortedMap<Integer, List<MapRoom>> islandRooms, int maxIslands) {
+		this.islandRooms = islandRooms;
+		this.maxIslands = maxIslands;
+		setupIsland(currentIsland);
+		setScreenShotParent();
+
+		setWindowTitle(SWAEdit.ref.area.getHead().getName());
+		setWindowIcon(QApplication.windowIcon());
 		genLists();
-		
-		animator = new Animator(this, 30);
+	}
+
+	private void refreshMap() {
+		mapRefreshed.emit();
 	}
 
 	@Override
@@ -273,6 +289,9 @@ public class MapWidget extends QGLWidget {
 			} else {
 				showFullScreen();
 			}
+			e.accept();
+		} else if (kc == 'r' || kc == Qt.Key.Key_R.value()) {
+			refreshMap();
 			e.accept();
 		} else if (kc == Qt.Key.Key_Left.value()) {
 			if (currentIsland > 0) {
@@ -343,18 +362,18 @@ public class MapWidget extends QGLWidget {
 			e.ignore();
 		}
 	}
-	
+
 	@Override
 	protected void mouseReleaseEvent(QMouseEvent e) {
 		if (e.button() == Qt.MouseButton.LeftButton) {
 			int ex = e.x();
 			int ey = e.y();
-			if (Math.abs(cx-ex) < 3 && Math.abs(cy-ey) < 3) {
+			if (Math.abs(cx - ex) < 3 && Math.abs(cy - ey) < 3) {
 				cx = ex;
 				cy = ey;
 				selection = true;
 				reportSelected = true;
-            }
+			}
 			e.accept();
 		} else {
 			e.ignore();
@@ -365,11 +384,11 @@ public class MapWidget extends QGLWidget {
 	protected void mouseMoveEvent(QMouseEvent e) {
 		if (e.buttons().isSet(Qt.MouseButton.LeftButton)) {
 			float p = (float) e.x();
-			dx -= (p-oldx)/w*dz;
+			dx -= (p - oldx) / w * dz;
 			oldx = p;
 
 			p = (float) e.y();
-			dy += (p-oldy)/h*dz;
+			dy += (p - oldy) / h * dz;
 			oldy = p;
 			e.accept();
 		} else if (e.buttons().isSet(Qt.MouseButton.RightButton)) {
@@ -430,7 +449,7 @@ public class MapWidget extends QGLWidget {
 			e.ignore();
 		}
 	}
-	
+
 	private void setupIsland(int islandNo) {
 		currentIsland = islandNo;
 		currentIslandSize = islandRooms.get(islandNo).size();
@@ -586,34 +605,37 @@ public class MapWidget extends QGLWidget {
 		return null;
 	}
 
-	public void showExit(BigInteger ownerRoomVnum, int exitIdx) {
+	public void showExit(BigInteger ownerRoomVnum, ExitWrapper ex) {
 		int[] islandRoom = findIsland(ownerRoomVnum);
 		if (islandRoom != null) {
 			if (currentIsland != islandRoom[0]) {
 				setupIsland(islandRoom[0]);
 			}
-			selectedVnum = ownerRoomVnum;
 
 			int exitNo = 0;
-			boolean foundRoom = false;
+			boolean exitFound = false;
 			for (MapRoom mr : islandRooms.get(currentIsland)) {
-				if (mr.getRoom().getVnum().equals(ownerRoomVnum)) {
-					foundRoom = true;
-				}
-
-				int eI = 0;
 				for (ExitWrapper exit : mr.getMapRooms().keySet()) {
-					int shift = currentIslandSize + exitNo;
-					if (foundRoom && eI == exitIdx) {
+					if (mr.getRoom().getVnum().equals(ownerRoomVnum) && exit.getVnum().equals(ex.getVnum())
+					        && exit.getDirection() == ex.getDirection()) {
+						selectedVnum = ownerRoomVnum;
+						exitFound = true;
+
+					} else if (exit.isTwoWay() && exit.getVnum().equals(ownerRoomVnum)
+					        && exit.getDirection() == ex.getRevDirection()) {
+						selectedVnum = mr.getRoom().getVnum();
+						exitFound = true;
+					}
+
+					if (exitFound) {
 						selectedExit = exit;
-						selected = shift;
+						selected = currentIslandSize + exitNo;
 						if (exit.isDistant() && !drawDistantExits) {
 							drawDistantExits = true;
 						}
 						return;
 					}
 					exitNo++;
-					eI++;
 				}
 			}
 		}
@@ -706,7 +728,7 @@ public class MapWidget extends QGLWidget {
 		drawWindRose();
 
 		if (drawCross) {
-			gl.glCallList(glList+4);
+			gl.glCallList(glList + 4);
 		}
 
 		if (selected >= 0 && selectedVnum != null || showHelp || showIslandsLayers > 0) {
@@ -747,7 +769,7 @@ public class MapWidget extends QGLWidget {
 			gl.glPopName();
 		}
 
-		gl.glFlush();
+		swapBuffers();
 
 		if (readPixels) {
 			takeScreenshot();
@@ -967,9 +989,9 @@ public class MapWidget extends QGLWidget {
 					}
 
 					if (exit.isTwoWay()) {
-						gl.glCallList(glList+1);
+						gl.glCallList(glList + 1);
 					} else {
-						gl.glCallList(glList+2);
+						gl.glCallList(glList + 2);
 					}
 				}
 				exit.setDrawn();
@@ -983,7 +1005,7 @@ public class MapWidget extends QGLWidget {
 
 	private void genLists() {
 		glList = gl.glGenLists(5);
-		
+
 		/* room list */
 		gl.glNewList(glList, GL2.GL_COMPILE);
 		gl.glBegin(GL2.GL_QUADS);
@@ -1020,24 +1042,24 @@ public class MapWidget extends QGLWidget {
 
 		gl.glEnd();
 		gl.glEndList();
-		
+
 		/* two way exit list */
-		gl.glNewList(glList+1, GL2.GL_COMPILE);
+		gl.glNewList(glList + 1, GL2.GL_COMPILE);
 		GLUquadric quadratic = glu.gluNewQuadric();
 		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
 		glu.gluQuadricTexture(quadratic, true);
 		glu.gluCylinder(quadratic, 0.2, 0.2, 1, 32, 32);
 		gl.glEndList();
-		
+
 		/* one way exit list */
-		gl.glNewList(glList+2, GL2.GL_COMPILE);
+		gl.glNewList(glList + 2, GL2.GL_COMPILE);
 		glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH);
 		glu.gluQuadricTexture(quadratic, true);
 		glu.gluCylinder(quadratic, 0.1, 0.1, 1, 32, 32);
 		gl.glEndList();
-		
+
 		/* wind rose list */
-		gl.glNewList(glList+3, GL2.GL_COMPILE);
+		gl.glNewList(glList + 3, GL2.GL_COMPILE);
 		gl.glBegin(GL2.GL_LINES);
 		gl.glColor4f(1, 0, 0, 0.9f);
 		gl.glVertex3f(0, 0, 0);
@@ -1073,11 +1095,11 @@ public class MapWidget extends QGLWidget {
 		gl.glColor4f(0, 0, 1, 1);
 		glu.gluCylinder(quadratic, 0.1, 0, 0.3, 32, 32);
 		glu.gluDisk(quadratic, 0, 0.1, 32, 32);
-		gl.glPopMatrix();		
+		gl.glPopMatrix();
 		gl.glEndList();
 
 		/* cross list */
-		gl.glNewList(glList+4, GL2.GL_COMPILE);
+		gl.glNewList(glList + 4, GL2.GL_COMPILE);
 		gl.glPushMatrix();
 		gl.glTranslatef(0, 0, -1);
 		gl.glBegin(GL2.GL_LINES);
@@ -1103,7 +1125,7 @@ public class MapWidget extends QGLWidget {
 		gl.glRotatef(zAngle, .0f, .0f, 1.f);
 		gl.glRotatef(angle, 1, 1, 1);
 
-		gl.glCallList(glList+3);		
+		gl.glCallList(glList + 3);
 		gl.glPopMatrix();
 	}
 

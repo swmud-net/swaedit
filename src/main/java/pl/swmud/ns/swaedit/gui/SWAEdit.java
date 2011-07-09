@@ -26,6 +26,7 @@ import pl.swmud.ns.swaedit.itemtypes.Itemtype;
 import pl.swmud.ns.swaedit.itemtypes.Itemtypes;
 import pl.swmud.ns.swaedit.itemtypes.Subvalue;
 import pl.swmud.ns.swaedit.itemtypes.Value;
+import pl.swmud.ns.swaedit.map.ExitWrapper;
 import pl.swmud.ns.swaedit.map.Mapper;
 import pl.swmud.ns.swaedit.names.Names;
 import pl.swmud.ns.swaedit.types.Type;
@@ -372,6 +373,15 @@ public class SWAEdit extends QMainWindow {
     @SuppressWarnings("unused")
     private void mapClosed() {
     	mapWidget = null;
+    }
+
+    @SuppressWarnings("unused")
+    private void mapRefreshed() {
+    	if (mapWidget != null) {
+            Mapper mapper = new Mapper(area);
+            mapper.makeMap(mapWidget);
+            mapWidget.updateGL();
+        }
     }
 
     private void on_actionCreate_New_Reset_triggered() {
@@ -2827,7 +2837,9 @@ public class SWAEdit extends QMainWindow {
         Exit exit = (Exit)ui.roomExitNavigatorComboBox.itemData(idx); 
         fillExit(exit);
         if (mapWidget != null && !mapSelection && exit != null) {
-	        mapWidget.showExit(getCurrentRoom().getVnum(), idx);
+//	        mapWidget.showExit(getCurrentRoom().getVnum(), idx);
+	        ExitWrapper ex = new ExitWrapper(exit);
+	        mapWidget.showExit(getCurrentRoom().getVnum(), ex);
         }
     }
     

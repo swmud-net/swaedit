@@ -26,7 +26,7 @@ public class Mapper {
 		this.area = area;
 	}
 
-	public MapWidget makeMap() {
+	private void createMap() {
 		for (Room room : area.getRooms().getRoom()) {
 			if (!isAlreadyMade(room)) {
 				RoomCoords coords = new RoomCoords(0, 0, 0, islandNo++);
@@ -40,29 +40,38 @@ public class Mapper {
 		assignRevExits();
 
 		createIslands();
-		
-		checkCoords();
 
+		checkCoords();
+	}
+
+	public MapWidget makeMap() {
+		createMap();
+		
 		MapWidget mw = null;
 		try {
 			mw = new MapWidget(islandRooms, 0, islandNo, false);
 			mw.show(0, 0);
-        } catch (GLException e) {
-        	if (mw != null) {
-            	mw.close();
-            }
-        	try {
-            	mw = new MapWidget(islandRooms, 0, islandNo, true);
-    			mw.show(0, 0);
-            } catch (GLException e1) {
-            	e1.printStackTrace();
-            	if (mw != null) {
-                	mw.close();
-                }
-            	mw = null;
-            }
-        }
+		} catch (GLException e) {
+			if (mw != null) {
+				mw.close();
+			}
+			try {
+				mw = new MapWidget(islandRooms, 0, islandNo, true);
+				mw.show(0, 0);
+			} catch (GLException e1) {
+				e1.printStackTrace();
+				if (mw != null) {
+					mw.close();
+				}
+				mw = null;
+			}
+		}
 		return mw;
+	}
+
+	public void makeMap(MapWidget mw) {
+		createMap();
+		mw.refreshMap(islandRooms, islandNo);
 	}
 
 	private void makeMapRoom(MapRoom parent, Room room) {
@@ -88,10 +97,11 @@ public class Mapper {
 		layers = new int[islandNo];
 
 		for (MapRoom attempted : mapRooms.values()) {
-			MapRoom current = coordsRooms.get(attempted.getCoords()); 
+			MapRoom current = coordsRooms.get(attempted.getCoords());
 			if (current != null) {
-//				System.out.println("replace attempt, current: "+current.getRoom().getVnum() + ", attempted: "+attempted.getRoom().getVnum());
-				RoomCoords rc = attempted.getCoords(); 
+				// System.out.println("replace attempt, current: "+current.getRoom().getVnum()
+				// + ", attempted: "+attempted.getRoom().getVnum());
+				RoomCoords rc = attempted.getCoords();
 				rc.setLayer(++layers[rc.getIslandNo()]);
 			}
 			coordsRooms.put(attempted.getCoords(), attempted);
@@ -105,15 +115,16 @@ public class Mapper {
 				if (toRoom != null && exit.getRevExit() == null) {
 					exit.setRevExit(getRevExit(exit, mr, toRoom));
 					if (exit.getRevExit() != null) {
-//						System.out.println("rev exit set to: " + mr.getRoom().getVnum() + ","
-//						        + exit.getRevExit().getVnum());
+						// System.out.println("rev exit set to: " +
+						// mr.getRoom().getVnum() + ","
+						// + exit.getRevExit().getVnum());
 					}
 				}
-				
+
 				/* set distnace */
 				if (mr.getDistance(toRoom) > 1) {
-	                exit.setDistant();
-                }
+					exit.setDistant();
+				}
 			}
 		}
 	}
