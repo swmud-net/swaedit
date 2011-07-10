@@ -16,6 +16,8 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
+import pl.swmud.ns.swaedit.core.FlagsWrapper;
+import pl.swmud.ns.swaedit.core.IFlagsSetter;
 import pl.swmud.ns.swaedit.map.Animator;
 import pl.swmud.ns.swaedit.map.ExitWrapper;
 import pl.swmud.ns.swaedit.map.GLFont;
@@ -55,7 +57,11 @@ public class MapWidget extends QGLWidget {
 
 	private static final int MAX_NAMESTACK_SIZE = 2;
 	private static final byte[] selectionColor = { (byte) 218, (byte) 168, (byte) 16, (byte) (255 * ALPHA) };
+	private static final byte[] selection1Color = { (byte) 249, (byte) 188, (byte) 11, (byte) (255 * ALPHA) };
 	private static final float[] objectColor = { .0f, .7f, .0f, ALPHA };
+	private static final float[] object1Color = { .0f, 1.f, .0f, ALPHA };
+	private static final byte[] flagColor = { (byte) 0, (byte) 224, (byte) 255, (byte) (255 * ALPHA) };
+	private static final byte[] flag1Color = { (byte) 0, (byte) 255, (byte) 255, (byte) (255 * ALPHA) };
 	private int cx, cy;
 	private int selected = -1;
 	private boolean reportSelected;
@@ -88,6 +94,7 @@ public class MapWidget extends QGLWidget {
 	private boolean drawDistantExits;
 
 	private GLFont glFont;
+	private Long roomMarkingFlag = Long.valueOf(0);
 
 	// private int mx, my;
 	// private int hovered = -1;
@@ -120,6 +127,7 @@ public class MapWidget extends QGLWidget {
 			add("c      - reset to center");
 			add("f      - toggle fullscreen");
 			add("r      - refresh map");
+			add("i      - select room marking flag");
 			add("right  - next island");
 			add("left   - previous island");
 			add("up     - next layer");
@@ -287,6 +295,14 @@ public class MapWidget extends QGLWidget {
 			e.accept();
 		} else if (kc == 'r' || kc == Qt.Key.Key_R.value()) {
 			mapRefreshed.emit();
+			e.accept();
+		} else if (kc == 'i' || kc == Qt.Key.Key_I.value()) {
+			new SingleFlagWidget(SWAEdit.ref.roomFlags.getFlag(), new FlagsWrapper(roomMarkingFlag, new IFlagsSetter() {
+				public void setFlags(Long flagValue) {
+					roomMarkingFlag = flagValue;
+				}
+			}), "Map Room Marking Flag", true).show();
+
 			e.accept();
 		} else if (kc == Qt.Key.Key_Left.value()) {
 			if (currentIsland > 0) {
@@ -836,7 +852,7 @@ public class MapWidget extends QGLWidget {
 				gl.glLoadName(i);
 				gl.glPassThrough((float) i);
 				if (selected == i && !selection) {
-					gl.glColor4ubv(selectionColor, 0);
+					gl.glColor4ubv(i == 0 ? selection1Color : selectionColor, 0);
 					if (reportSelected) {
 						reportSelected = false;
 						selectedVnum = mr.getRoom().getVnum();
@@ -857,9 +873,19 @@ public class MapWidget extends QGLWidget {
 					// }
 				} else {
 					if (i == 0) {
-						gl.glColor4f(.0f, 1.f, .0f, ALPHA);
+						if (roomMarkingFlag.longValue() > 0
+						        && (mr.getRoom().getFlags() & roomMarkingFlag) == roomMarkingFlag) {
+							gl.glColor4ubv(flag1Color, 0);
+						} else {
+							gl.glColor4fv(object1Color, 0);
+						}
 					} else {
-						gl.glColor4fv(objectColor, 0);
+						if (roomMarkingFlag.longValue() > 0
+						        && (mr.getRoom().getFlags() & roomMarkingFlag) == roomMarkingFlag) {
+							gl.glColor4ubv(flagColor, 0);
+						} else {
+							gl.glColor4fv(objectColor, 0);
+						}
 					}
 				}
 

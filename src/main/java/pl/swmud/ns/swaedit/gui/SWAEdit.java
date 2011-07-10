@@ -89,7 +89,7 @@ public class SWAEdit extends QMainWindow {
     private Flags itemExtraFlags;
     private Flags mobileActFlags;
     private Flags mobileAffectedFlags;
-    private Flags roomFlags;
+    Flags roomFlags;
     private Flags exitFlags;
     private Flags xFlags;
     private Flags resistFlags;
