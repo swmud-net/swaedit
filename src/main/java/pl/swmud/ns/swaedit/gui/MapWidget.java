@@ -24,6 +24,8 @@ import pl.swmud.ns.swaedit.map.RoomCoords;
 import pl.swmud.ns.swaedit.map.RoomSpread;
 
 import com.jogamp.common.nio.Buffers;
+import com.trolltech.qt.core.QPoint;
+import com.trolltech.qt.core.QTime;
 import com.trolltech.qt.core.QTimer;
 import com.trolltech.qt.core.Qt;
 import com.trolltech.qt.gui.QApplication;
@@ -39,7 +41,6 @@ import com.trolltech.qt.opengl.QGLWidget;
 public class MapWidget extends QGLWidget {
 	private int selectBufLen;
 
-	private static final float SENSITIVITY = 0.06f;
 	private static final int FPS = 30;
 	private QTimer animator;
 	private boolean animate = true;
@@ -69,12 +70,12 @@ public class MapWidget extends QGLWidget {
 	private float near = 1.0f;
 	private float far = 500.0f;
 
-	private static final float PI2 = (float) Math.PI * .5f;
-	private static final float ROT_SENS_MULT = .6f;
 	private static final float INITIAL_Z = -31.f;
 	private float dz = INITIAL_Z;
-	private float rot, angle, dx, dy, oldx, oldy, xRot, yRot, zRot, xAngle, yAngle, zAngle;
-	private boolean xRotAxis, yRotAxis, zRotAxis;
+	private float rot, angle, dx, dy, xRot, yRot, zRot;
+	private QPoint lastPos;
+	private boolean zRotAxis;
+	QTime lastTime;
 
 	private SortedMap<Integer, List<MapRoom>> islandRooms;
 	private float xMiddle, yMiddle, zMiddle;
@@ -127,9 +128,7 @@ public class MapWidget extends QGLWidget {
 			add("F11    - take a transparent screenshot");
 			add("lMouse - drag to move, click to select room/exit");
 			add("rMouse - drag to change rotation angle");
-			add("shift  - hold to apply angle to X-axis");
-			add("ctrl   - hold to apply angle to Y-axis");
-			add("alt    - hold to apply angle to Z-axis");
+			add("shift  - hold to switch Y to Z axis");
 		}
 	};
 
@@ -163,7 +162,7 @@ public class MapWidget extends QGLWidget {
 		// gl.glGetIntegerv(GL2.GL_SAMPLES, buf, 0);
 		// System.out.println("samples:" + buf[0]);
 
-		Font f = new Font(Font.SERIF, 0, 16);
+		Font f = new Font(Font.DIALOG_INPUT, 0, 16);
 		if (f != null) {
 			glFont = new GLFont(f, gl, 0, 0);
 		}
@@ -219,7 +218,7 @@ public class MapWidget extends QGLWidget {
 	        boolean defaultFormat) {
 		super(defaultFormat ? QGLFormat.defaultFormat() : getQGLFormat());
 		setAutoBufferSwap(false);
-		
+
 		this.currentIsland = currentIsland;
 
 		GLProfile profile = GLProfile.get(GLProfile.GL2);
@@ -249,10 +248,6 @@ public class MapWidget extends QGLWidget {
 		setWindowTitle(SWAEdit.ref.area.getHead().getName());
 		setWindowIcon(QApplication.windowIcon());
 		genLists();
-	}
-
-	private void refreshMap() {
-		mapRefreshed.emit();
 	}
 
 	@Override
@@ -291,7 +286,7 @@ public class MapWidget extends QGLWidget {
 			}
 			e.accept();
 		} else if (kc == 'r' || kc == Qt.Key.Key_R.value()) {
-			refreshMap();
+			mapRefreshed.emit();
 			e.accept();
 		} else if (kc == Qt.Key.Key_Left.value()) {
 			if (currentIsland > 0) {
@@ -316,12 +311,6 @@ public class MapWidget extends QGLWidget {
 			transparentScreenShot();
 			e.accept();
 		} else if (kc == Qt.Key.Key_Shift.value()) {
-			xRotAxis = true;
-			e.accept();
-		} else if (kc == Qt.Key.Key_Control.value()) {
-			yRotAxis = true;
-			e.accept();
-		} else if (kc == Qt.Key.Key_Alt.value()) {
 			zRotAxis = true;
 			e.accept();
 		} else {
@@ -333,12 +322,6 @@ public class MapWidget extends QGLWidget {
 	protected void keyReleaseEvent(QKeyEvent e) {
 		int kc = e.key();
 		if (kc == Qt.Key.Key_Shift.value()) {
-			xRotAxis = false;
-			e.accept();
-		} else if (kc == Qt.Key.Key_Control.value()) {
-			yRotAxis = false;
-			e.accept();
-		} else if (kc == Qt.Key.Key_Alt.value()) {
 			zRotAxis = false;
 			e.accept();
 		} else {
@@ -348,15 +331,16 @@ public class MapWidget extends QGLWidget {
 
 	@Override
 	protected void wheelEvent(QWheelEvent e) {
-		dz -= e.delta() / 100;
+		dz -= e.delta() / 120;
 		e.accept();
 	}
 
 	@Override
 	protected void mousePressEvent(QMouseEvent e) {
+		lastPos = e.pos();
 		if (e.button() == Qt.MouseButton.LeftButton) {
-			oldx = cx = e.x();
-			oldy = cy = e.y();
+			cx = e.x();
+			cy = e.y();
 			e.accept();
 		} else {
 			e.ignore();
@@ -382,72 +366,63 @@ public class MapWidget extends QGLWidget {
 
 	@Override
 	protected void mouseMoveEvent(QMouseEvent e) {
-		if (e.buttons().isSet(Qt.MouseButton.LeftButton)) {
-			float p = (float) e.x();
-			dx -= (p - oldx) / w * dz;
-			oldx = p;
+		int dx = e.x() - lastPos.x();
+		int dy = e.y() - lastPos.y();
+		lastPos = e.pos();
 
-			p = (float) e.y();
-			dy += (p - oldy) / h * dz;
-			oldy = p;
+		if (e.buttons().isSet(Qt.MouseButton.LeftButton)) {
+			if (dz < .0f) {
+				this.dx -= ((float) dx) / ((float) w) * dz;
+				this.dy += ((float) dy) / ((float) h) * dz;
+			} else if (dz > .0f) {
+				this.dx += ((float) dx) / ((float) w) * dz;
+				this.dy -= ((float) dy) / ((float) h) * dz;
+			} else {
+				this.dx += ((float) dx) / ((float) w);
+				this.dy -= ((float) dy) / ((float) h);
+			}
 			e.accept();
 		} else if (e.buttons().isSet(Qt.MouseButton.RightButton)) {
-			float px = (float) e.x();
-			float py = (float) e.y();
-			if (xRotAxis) {
-				if (py < oldy) {
-					xRot -= SENSITIVITY * ROT_SENS_MULT;
-				} else if (py > oldy) {
-					xRot += SENSITIVITY * ROT_SENS_MULT;
-				}
-
-				if (xRot > PI2) {
-					xRot = .0f;
-				} else if (xRot < .0f) {
-					xRot = PI2;
-				}
-
-				xAngle = 360.f * Math.abs((float) Math.sin(xRot));
-			}
-
-			if (yRotAxis) {
-				if (px > oldx) {
-					yRot += SENSITIVITY * ROT_SENS_MULT;
-				} else if (px < oldx) {
-					yRot -= SENSITIVITY * ROT_SENS_MULT;
-				}
-
-				if (yRot > PI2) {
-					yRot = .0f;
-				} else if (yRot < .0f) {
-					yRot = PI2;
-				}
-
-				yAngle = 360.f * Math.abs((float) Math.sin(yRot));
-			}
-
+			setXRotation(((int) xRot) + 8 * dy);
 			if (zRotAxis) {
-				if (py < oldy) {
-					zRot += SENSITIVITY * ROT_SENS_MULT;
-				} else if (py > oldy) {
-					zRot -= SENSITIVITY * ROT_SENS_MULT;
-				}
-
-				if (zRot > PI2) {
-					zRot = .0f;
-				} else if (zRot < .0f) {
-					zRot = PI2;
-				}
-
-				zAngle = 360.f * Math.abs((float) Math.sin(zRot));
+				setZRotation(((int) zRot) + 8 * dx);
+			} else {
+				setYRotation(((int) yRot) + 8 * dx);
 			}
-
-			oldx = px;
-			oldy = py;
 			e.accept();
 		} else {
 			e.ignore();
 		}
+	}
+
+	private void setXRotation(int angle) {
+		angle = normalizeAngle(angle);
+		if (angle != xRot) {
+			xRot = angle;
+		}
+	}
+
+	private void setYRotation(int angle) {
+		angle = normalizeAngle(angle);
+		if (angle != yRot) {
+			yRot = angle;
+		}
+	}
+
+	private void setZRotation(int angle) {
+		angle = normalizeAngle(angle);
+		if (angle != zRot) {
+			zRot = angle;
+		}
+	}
+
+	private int normalizeAngle(int angle) {
+		while (angle < 0)
+			angle += 360 * 16;
+		while (angle > 360 * 16)
+			angle -= 360 * 16;
+
+		return angle;
 	}
 
 	private void setupIsland(int islandNo) {
@@ -487,7 +462,7 @@ public class MapWidget extends QGLWidget {
 
 	private void center() {
 		dz = INITIAL_Z;
-		rot = dx = dy = angle = oldx = oldy = xRot = yRot = zRot = xAngle = yAngle = zAngle = .0f;
+		rot = dx = dy = angle = xRot = yRot = zRot = .0f;
 	}
 
 	private void screenShot() {
@@ -641,10 +616,11 @@ public class MapWidget extends QGLWidget {
 		}
 	}
 
-	// private float[] translateMouse(int x, int y, int w, int h) {
-	// return new float[] { -(1.f - ((float) x * 2.f / (float) w)), 1.f -
-	// ((float) y * 2.f / (float) h) };
-	// }
+	/*
+	 * private float[] translateMouse(int x, int y, int w, int h) { return new
+	 * float[] { -(1.f - ((float) x * 2.f / (float) w)), 1.f - ((float) y * 2.f
+	 * / (float) h) }; }
+	 */
 
 	private void select(int cx, int cy) {
 		int[] viewport = new int[4];
@@ -843,9 +819,9 @@ public class MapWidget extends QGLWidget {
 		gl.glPushMatrix();
 		List<MapRoom> island = islandRooms.get(currentIsland);
 		gl.glTranslatef(dx, dy, dz);
-		gl.glRotatef(xAngle, 1.f, .0f, .0f);
-		gl.glRotatef(yAngle, .0f, 1.f, .0f);
-		gl.glRotatef(zAngle, .0f, .0f, 1.f);
+		gl.glRotatef(xRot / 16.f, 1.f, .0f, .0f);
+		gl.glRotatef(yRot / 16.f, .0f, 1.f, .0f);
+		gl.glRotatef(zRot / 16.f, .0f, .0f, 1.f);
 		gl.glRotatef(angle, 1.f, 1.f, 1.f);
 		RoomCoords coords = island.get(0).getCoords();
 		gl.glTranslatef(-.5f + xMiddle - coords.getX(), -.5f + yMiddle - coords.getY(), -.5f + zMiddle);
@@ -1120,9 +1096,9 @@ public class MapWidget extends QGLWidget {
 		float[] lb = getLeftBottom(zRose);
 		gl.glTranslatef(lb[0] + fScale, lb[1] + fScale, zRose);
 		gl.glScalef(fScale, fScale, fScale);
-		gl.glRotatef(xAngle, 1.f, .0f, .0f);
-		gl.glRotatef(yAngle, .0f, 1.f, .0f);
-		gl.glRotatef(zAngle, .0f, .0f, 1.f);
+		gl.glRotatef(xRot / 16.f, 1.f, .0f, .0f);
+		gl.glRotatef(yRot / 16.f, .0f, 1.f, .0f);
+		gl.glRotatef(zRot / 16.f, .0f, .0f, 1.f);
 		gl.glRotatef(angle, 1, 1, 1);
 
 		gl.glCallList(glList + 3);

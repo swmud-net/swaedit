@@ -2837,7 +2837,6 @@ public class SWAEdit extends QMainWindow {
         Exit exit = (Exit)ui.roomExitNavigatorComboBox.itemData(idx); 
         fillExit(exit);
         if (mapWidget != null && !mapSelection && exit != null) {
-//	        mapWidget.showExit(getCurrentRoom().getVnum(), idx);
 	        ExitWrapper ex = new ExitWrapper(exit);
 	        mapWidget.showExit(getCurrentRoom().getVnum(), ex);
         }
