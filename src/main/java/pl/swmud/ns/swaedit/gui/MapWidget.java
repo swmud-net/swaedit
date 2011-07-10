@@ -297,11 +297,11 @@ public class MapWidget extends QGLWidget {
 			mapRefreshed.emit();
 			e.accept();
 		} else if (kc == 'i' || kc == Qt.Key.Key_I.value()) {
-			new SingleFlagWidget(SWAEdit.ref.roomFlags.getFlag(), new FlagsWrapper(roomMarkingFlag, new IFlagsSetter() {
+			new FlagsWidget(SWAEdit.ref.roomFlags.getFlag(), new FlagsWrapper(roomMarkingFlag, new IFlagsSetter() {
 				public void setFlags(Long flagValue) {
 					roomMarkingFlag = flagValue;
 				}
-			}), "Map Room Marking Flag", true).show();
+			}), "Map Room Marking Flag").show();
 
 			e.accept();
 		} else if (kc == Qt.Key.Key_Left.value()) {
