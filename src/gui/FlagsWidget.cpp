@@ -55,9 +55,7 @@ FlagsWidget::FlagsWidget(const QList<FlagDef> &flagList,
         int row = i % ROWS_PER_COLUMN;
         grid->addWidget(cb, row, col);
 
-        connect(cb, &QCheckBox::checkStateChanged, this, [this](Qt::CheckState state) {
-            onCheckBoxStateChanged(static_cast<int>(state));
-        });
+        connect(cb, &QCheckBox::stateChanged, this, &FlagsWidget::onCheckBoxStateChanged);
         checkboxes_.append(cb);
     }
 

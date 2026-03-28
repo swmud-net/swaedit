@@ -209,9 +209,14 @@ jobs:
             sed -i 's/!define MUI_ICON.*/#/' installer.nsi
           fi
 
+      - name: Install NSIS
+        run: choco install nsis -y
+
       - name: Build installer
         shell: cmd
-        run: makensis installer.nsi
+        run: |
+          set PATH=%PATH%;C:\Program Files (x86)\NSIS
+          makensis installer.nsi
 
       - name: Upload Windows artifact
         if: startsWith(github.ref, 'refs/tags/v')
