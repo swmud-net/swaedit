@@ -10,8 +10,8 @@
 int main(int argc, char *argv[])
 {
     // Redirect stderr and stdout to log files (append mode), matching original Java behavior
-    freopen("swaedit_err.log", "a", stderr);
-    freopen("swaedit_out.log", "a", stdout);
+    (void)freopen("swaedit_err.log", "a", stderr);
+    (void)freopen("swaedit_out.log", "a", stdout);
 
     QApplication app(argc, argv);
 
