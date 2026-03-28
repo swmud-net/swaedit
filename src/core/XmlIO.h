@@ -2,6 +2,7 @@
 #define XMLIO_H
 
 #include <QString>
+#include <QStringList>
 #include <QList>
 
 struct Area;
@@ -18,6 +19,9 @@ class QXmlStreamWriter;
 
 namespace XmlIO {
 
+// XSD validation — returns empty string on success, error message on failure
+QString validateXml(const QString &xmlFilePath, const QString &xsdFilePath);
+
 // Area file I/O
 Area loadArea(const QString &filePath);
 bool saveArea(const Area &area, const QString &filePath);
@@ -31,8 +35,9 @@ QList<TypeDef> loadTypes(const QString &filePath);
 QList<ResetInfoDef> loadResetsInfo(const QString &filePath);
 QList<HighlighterWordsDef> loadHighlighter(const QString &filePath);
 
-// Load all config data from the data/ directory
-ConfigData loadAllConfig(const QString &dataDir);
+// Load all config data from the data/ directory.
+// If validationErrors is non-null, XSD validation errors are appended to it.
+ConfigData loadAllConfig(const QString &dataDir, QStringList *validationErrors = nullptr);
 
 } // namespace XmlIO
 

@@ -2,9 +2,78 @@
 #include "model/Area.h"
 #include "model/ConfigData.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+
+#include <libxml/xmlschemas.h>
+#include <libxml/parser.h>
+
+// ---------------------------------------------------------------------------
+// XSD Validation (libxml2)
+// ---------------------------------------------------------------------------
+
+static QString s_validationErrors;
+
+static void xsdValidationErrorHandler(void * /*ctx*/, const char *msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    char buf[2048];
+    vsnprintf(buf, sizeof(buf), msg, args);
+    va_end(args);
+    s_validationErrors += QString::fromUtf8(buf);
+}
+
+QString XmlIO::validateXml(const QString &xmlFilePath, const QString &xsdFilePath)
+{
+    s_validationErrors.clear();
+
+    QByteArray xsdPath = xsdFilePath.toUtf8();
+    QByteArray xmlPath = xmlFilePath.toUtf8();
+
+    xmlDocPtr schemaDoc = xmlReadFile(xsdPath.constData(), nullptr, 0);
+    if (!schemaDoc)
+        return QStringLiteral("Failed to parse XSD schema: ") + xsdFilePath;
+
+    xmlSchemaParserCtxtPtr parserCtxt = xmlSchemaNewDocParserCtxt(schemaDoc);
+    if (!parserCtxt) {
+        xmlFreeDoc(schemaDoc);
+        return QStringLiteral("Failed to create schema parser context");
+    }
+
+    xmlSchemaPtr schema = xmlSchemaParse(parserCtxt);
+    xmlSchemaFreeParserCtxt(parserCtxt);
+    if (!schema) {
+        xmlFreeDoc(schemaDoc);
+        return QStringLiteral("Failed to parse XSD schema");
+    }
+
+    xmlSchemaValidCtxtPtr validCtxt = xmlSchemaNewValidCtxt(schema);
+    xmlSchemaSetValidErrors(validCtxt, xsdValidationErrorHandler, xsdValidationErrorHandler, nullptr);
+
+    xmlDocPtr doc = xmlReadFile(xmlPath.constData(), nullptr, 0);
+    if (!doc) {
+        xmlSchemaFreeValidCtxt(validCtxt);
+        xmlSchemaFree(schema);
+        xmlFreeDoc(schemaDoc);
+        return QStringLiteral("Failed to parse XML file: ") + xmlFilePath;
+    }
+
+    int ret = xmlSchemaValidateDoc(validCtxt, doc);
+
+    xmlFreeDoc(doc);
+    xmlSchemaFreeValidCtxt(validCtxt);
+    xmlSchemaFree(schema);
+    xmlFreeDoc(schemaDoc);
+
+    if (ret == 0)
+        return QString(); // valid
+    return s_validationErrors.isEmpty()
+        ? QStringLiteral("XML validation failed")
+        : s_validationErrors.trimmed();
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -308,8 +377,54 @@ QList<HighlighterWordsDef> XmlIO::loadHighlighter(const QString &filePath)
     return result;
 }
 
-ConfigData XmlIO::loadAllConfig(const QString &dataDir)
+// Helper: validate a config XML file against its XSD.
+// Returns error string (empty on success).
+static QString validateConfig(const QString &xmlFile, const QString &xsdFile)
 {
+    QString err = XmlIO::validateXml(xmlFile, xsdFile);
+    if (!err.isEmpty()) {
+        return QStringLiteral("%1: %2").arg(xmlFile, err.trimmed());
+    }
+    return QString();
+}
+
+ConfigData XmlIO::loadAllConfig(const QString &dataDir, QStringList *validationErrors)
+{
+    QString schemaDir = QCoreApplication::applicationDirPath() + QStringLiteral("/schemas/");
+
+    // Validate config files against their schemas
+    struct { const char *xml; const char *xsd; } configFiles[] = {
+        { "areaflags.xml",           "flags.xsd" },
+        { "itemwearflags.xml",       "flags.xsd" },
+        { "itemextraflags.xml",      "flags.xsd" },
+        { "mobileactflags.xml",      "flags.xsd" },
+        { "mobileaffectedflags.xml", "flags.xsd" },
+        { "roomflags.xml",           "flags.xsd" },
+        { "exitflags.xml",           "flags.xsd" },
+        { "xflags.xml",              "flags.xsd" },
+        { "resistflags.xml",         "flags.xsd" },
+        { "attackflags.xml",         "flags.xsd" },
+        { "defenseflags.xml",        "flags.xsd" },
+        { "shopflags.xml",           "flags.xsd" },
+        { "exits.xml",               "exits.xsd" },
+        { "itemtypes.xml",           "itemtypes.xsd" },
+        { "races.xml",               "names.xsd" },
+        { "languages.xml",           "names.xsd" },
+        { "planets.xml",             "names.xsd" },
+        { "progtypes.xml",           "names.xsd" },
+        { "mobilespecfunctions.xml", "names.xsd" },
+        { "positions.xml",           "types.xsd" },
+        { "repairtypes.xml",         "types.xsd" },
+        { "roomsectortypes.xml",     "types.xsd" },
+        { "resetsinfo.xml",          "resets.xsd" },
+        { "highlighter.xml",         "highlighter.xsd" },
+    };
+    for (const auto &cf : configFiles) {
+        QString err = validateConfig(dataDir + "/" + cf.xml, schemaDir + cf.xsd);
+        if (!err.isEmpty() && validationErrors)
+            validationErrors->append(err);
+    }
+
     ConfigData c;
     c.areaFlags            = loadFlags(dataDir + "/areaflags.xml");
     c.itemWearFlags        = loadFlags(dataDir + "/itemwearflags.xml");

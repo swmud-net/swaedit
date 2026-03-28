@@ -9,6 +9,7 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets Xml)
 find_package(OpenGL REQUIRED)
+find_package(LibXml2 REQUIRED)
 
 set(SOURCES
     src/main.cpp
@@ -74,7 +75,7 @@ set(HEADERS
 
 qt_add_executable(swaedit ${SOURCES} ${HEADERS})
 
-target_include_directories(swaedit PRIVATE src)
+target_include_directories(swaedit PRIVATE src ${LIBXML2_INCLUDE_DIR})
 
 target_compile_definitions(swaedit PRIVATE GL_SILENCE_DEPRECATION)
 
@@ -83,6 +84,7 @@ target_link_libraries(swaedit PRIVATE
     Qt6::OpenGLWidgets
     Qt6::Xml
     OpenGL::GL
+    LibXml2::LibXml2
 )
 
 # Copy data/ and schemas/ into the build directory so the app can find them at runtime

@@ -83,7 +83,14 @@ MainWindow::~MainWindow()
 void MainWindow::loadConfigData()
 {
     QString dataDir = QCoreApplication::applicationDirPath() + "/data/";
-    config_ = XmlIO::loadAllConfig(dataDir);
+    QStringList errors;
+    config_ = XmlIO::loadAllConfig(dataDir, &errors);
+    if (!errors.isEmpty()) {
+        QMessageBox::critical(this, "Config Validation Error",
+            QStringLiteral("Configuration files failed XSD validation. "
+                           "The application may not work correctly.\n\n%1")
+                .arg(errors.join("\n\n")));
+    }
 }
 
 void MainWindow::installToolTipEventFilter()
@@ -550,9 +557,19 @@ void MainWindow::openArea()
         return;
 
     QString fileName = QFileDialog::getOpenFileName(
-        this, "Open Area", QString(), "Area Files (*.xml);;All Files (*)");
+        this, "Open an area", QString(), "swmud 1.0 area files (*.xml)");
     if (fileName.isEmpty())
         return;
+
+    // Validate against XSD — reject invalid files
+    QString schemaDir = QCoreApplication::applicationDirPath() + QStringLiteral("/schemas/");
+    QString validationError = XmlIO::validateXml(fileName, schemaDir + QStringLiteral("area.xsd"));
+    if (!validationError.isEmpty()) {
+        QMessageBox::critical(this, "XSD Validation Error",
+            QStringLiteral("The area file does not conform to the schema and cannot be loaded.\n\n%1")
+                .arg(validationError));
+        return;
+    }
 
     area_ = XmlIO::loadArea(fileName);
     currentFileName_ = fileName;
