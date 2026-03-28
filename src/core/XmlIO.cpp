@@ -155,10 +155,10 @@ QList<ExitDef> XmlIO::loadExits(const QString &filePath)
         if (xml.isStartElement() && xml.name() == u"exit") {
             ExitDef e;
             auto attrs = xml.attributes();
-            if (attrs.hasAttribute(u"empty"))
-                e.empty = (attrs.value(u"empty") == u"true");
-            if (attrs.hasAttribute(u"opposite"))
-                e.opposite = attrs.value(u"opposite").toInt();
+            if (attrs.hasAttribute(QStringLiteral("empty")))
+                e.empty = (attrs.value(QStringLiteral("empty")) == u"true");
+            if (attrs.hasAttribute(QStringLiteral("opposite")))
+                e.opposite = attrs.value(QStringLiteral("opposite")).toInt();
 
             while (!(xml.isEndElement() && xml.name() == u"exit")) {
                 xml.readNext();
@@ -186,8 +186,8 @@ QList<ItemTypeDef> XmlIO::loadItemTypes(const QString &filePath)
         if (xml.isStartElement() && xml.name() == u"itemtype") {
             ItemTypeDef it;
             auto attrs = xml.attributes();
-            if (attrs.hasAttribute(u"visible"))
-                it.visible = (attrs.value(u"visible") != u"false");
+            if (attrs.hasAttribute(QStringLiteral("visible")))
+                it.visible = (attrs.value(QStringLiteral("visible")) != u"false");
 
             while (!(xml.isEndElement() && xml.name() == u"itemtype")) {
                 xml.readNext();
@@ -214,16 +214,16 @@ QList<ItemTypeDef> XmlIO::loadItemTypes(const QString &filePath)
                                     v.name = readText(xml);
                                 } else if (xml.name() == u"subvalues") {
                                     auto svAttrs = xml.attributes();
-                                    v.subvaluesType = svAttrs.hasAttribute(u"type")
-                                        ? svAttrs.value(u"type").toString() : "auto";
+                                    v.subvaluesType = svAttrs.hasAttribute(QStringLiteral("type"))
+                                        ? svAttrs.value(QStringLiteral("type")).toString() : "auto";
                                     while (!(xml.isEndElement() && xml.name() == u"subvalues")) {
                                         xml.readNext();
                                         if (!xml.isStartElement()) continue;
                                         if (xml.name() == u"subvalue") {
                                             SubvalueDef sv;
                                             auto svAttr = xml.attributes();
-                                            sv.constraint = svAttr.hasAttribute(u"constraint")
-                                                ? svAttr.value(u"constraint").toString() : "none";
+                                            sv.constraint = svAttr.hasAttribute(QStringLiteral("constraint"))
+                                                ? svAttr.value(QStringLiteral("constraint")).toString() : "none";
                                             while (!(xml.isEndElement() && xml.name() == u"subvalue")) {
                                                 xml.readNext();
                                                 if (!xml.isStartElement()) continue;
@@ -290,7 +290,7 @@ static ResetArgDef parseResetArg(QXmlStreamReader &xml, const QString &tagName)
 {
     ResetArgDef arg;
     auto attrs = xml.attributes();
-    arg.type = attrs.hasAttribute(u"type") ? attrs.value(u"type").toString() : "intval";
+    arg.type = attrs.hasAttribute(QStringLiteral("type")) ? attrs.value(QStringLiteral("type")).toString() : "intval";
 
     while (!(xml.isEndElement() && xml.name() == tagName)) {
         xml.readNext();
@@ -299,8 +299,8 @@ static ResetArgDef parseResetArg(QXmlStreamReader &xml, const QString &tagName)
             arg.name = readText(xml);
         } else if (xml.name() == u"values") {
             auto vAttrs = xml.attributes();
-            arg.valuesType = vAttrs.hasAttribute(u"type")
-                ? vAttrs.value(u"type").toString() : "types";
+            arg.valuesType = vAttrs.hasAttribute(QStringLiteral("type"))
+                ? vAttrs.value(QStringLiteral("type")).toString() : "types";
             while (!(xml.isEndElement() && xml.name() == u"values")) {
                 xml.readNext();
                 if (!xml.isStartElement()) continue;
@@ -363,9 +363,9 @@ QList<HighlighterWordsDef> XmlIO::loadHighlighter(const QString &filePath)
         if (xml.isStartElement() && xml.name() == u"words") {
             HighlighterWordsDef w;
             auto attrs = xml.attributes();
-            w.type = attrs.value(u"type").toString();
-            w.color = attrs.hasAttribute(u"color")
-                ? attrs.value(u"color").toString() : "0";
+            w.type = attrs.value(QStringLiteral("type")).toString();
+            w.color = attrs.hasAttribute(QStringLiteral("color"))
+                ? attrs.value(QStringLiteral("color")).toString() : "0";
             while (!(xml.isEndElement() && xml.name() == u"words")) {
                 xml.readNext();
                 if (xml.isStartElement() && xml.name() == u"word")
