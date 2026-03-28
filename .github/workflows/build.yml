@@ -1,0 +1,186 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------------------------------------------------------------
+  # Linux — build only, no artifact upload
+  # ---------------------------------------------------------------
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake build-essential \
+            qt6-base-dev qt6-base-dev-tools \
+            libqt6opengl6-dev libqt6openglwidgets6 \
+            libgl1-mesa-dev \
+            libxml2-dev
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release -j$(nproc)
+
+  # ---------------------------------------------------------------
+  # macOS — build + package .dmg
+  # ---------------------------------------------------------------
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install qt@6
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$(brew --prefix qt@6)"
+
+      - name: Build
+        run: cmake --build build --config Release -j$(sysctl -n hw.ncpu)
+
+      - name: Create app bundle
+        run: |
+          cd build
+          mkdir -p SWAEdit.app/Contents/MacOS
+          mkdir -p SWAEdit.app/Contents/Resources
+          cp swaedit SWAEdit.app/Contents/MacOS/swaedit
+          cp -r data SWAEdit.app/Contents/MacOS/data
+          cp -r schemas SWAEdit.app/Contents/MacOS/schemas
+          cp -r images SWAEdit.app/Contents/MacOS/images
+          cat > SWAEdit.app/Contents/Info.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key>
+            <string>swaedit</string>
+            <key>CFBundleIdentifier</key>
+            <string>pl.swmud.swaedit</string>
+            <key>CFBundleName</key>
+            <string>SWAEdit</string>
+            <key>CFBundleVersion</key>
+            <string>0.1.0</string>
+            <key>CFBundleShortVersionString</key>
+            <string>0.1.0</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleIconFile</key>
+            <string>icon</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Run macdeployqt
+        run: |
+          $(brew --prefix qt@6)/bin/macdeployqt build/SWAEdit.app
+
+      - name: Create DMG
+        run: |
+          hdiutil create -volname "SWAEdit" -srcfolder build/SWAEdit.app \
+            -ov -format UDZO build/SWAEdit-macos.dmg
+
+      - name: Upload macOS artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: swaedit-macos
+          path: build/SWAEdit-macos.dmg
+
+  # ---------------------------------------------------------------
+  # Windows — build + package .zip
+  # ---------------------------------------------------------------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: qtbase
+
+      - name: Install libxml2
+        run: |
+          vcpkg install libxml2:x64-windows
+          echo "CMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" >> $env:GITHUB_ENV
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$env:CMAKE_TOOLCHAIN_FILE"
+
+      - name: Build
+        run: cmake --build build --config Release -j $env:NUMBER_OF_PROCESSORS
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p package/swaedit
+          cp build/Release/swaedit.exe package/swaedit/
+          cp -r build/Release/data package/swaedit/ 2>/dev/null || cp -r data package/swaedit/
+          cp -r build/Release/schemas package/swaedit/ 2>/dev/null || cp -r schemas package/swaedit/
+          cp -r build/Release/images package/swaedit/ 2>/dev/null || cp -r images package/swaedit/
+          # Run windeployqt to bundle Qt DLLs
+          windeployqt package/swaedit/swaedit.exe
+          # Copy vcpkg DLLs
+          cp build/Release/*.dll package/swaedit/ 2>/dev/null || true
+
+      - name: Create ZIP
+        shell: bash
+        run: |
+          cd package
+          7z a ../SWAEdit-windows-x64.zip swaedit/
+
+      - name: Upload Windows artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: swaedit-windows
+          path: SWAEdit-windows-x64.zip
+
+  # ---------------------------------------------------------------
+  # Release — publish artifacts when a tag is pushed
+  # ---------------------------------------------------------------
+  release:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swaedit-macos
+          path: release/
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swaedit-windows
+          path: release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/SWAEdit-macos.dmg
+            release/SWAEdit-windows-x64.zip
+          generate_release_notes: true
