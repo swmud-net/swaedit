@@ -100,7 +100,7 @@ jobs:
           path: build/SWAEdit-macos.dmg
 
   # ---------------------------------------------------------------
-  # Windows — build + package .zip
+  # Windows — build + NSIS installer (.exe)
   # ---------------------------------------------------------------
   build-windows:
     runs-on: windows-latest
@@ -127,7 +127,7 @@ jobs:
       - name: Build
         run: cmake --build build --config Release -j $env:NUMBER_OF_PROCESSORS
 
-      - name: Package
+      - name: Prepare install directory
         shell: bash
         run: |
           mkdir -p package/swaedit
@@ -135,23 +135,91 @@ jobs:
           cp -r build/Release/data package/swaedit/ 2>/dev/null || cp -r data package/swaedit/
           cp -r build/Release/schemas package/swaedit/ 2>/dev/null || cp -r schemas package/swaedit/
           cp -r build/Release/images package/swaedit/ 2>/dev/null || cp -r images package/swaedit/
-          # Run windeployqt to bundle Qt DLLs
           windeployqt package/swaedit/swaedit.exe
-          # Copy vcpkg DLLs
           cp build/Release/*.dll package/swaedit/ 2>/dev/null || true
 
-      - name: Create ZIP
+      - name: Create NSIS installer script
         shell: bash
         run: |
-          cd package
-          7z a ../SWAEdit-windows-x64.zip swaedit/
+          cat > installer.nsi << 'NSIS'
+          !include "MUI2.nsh"
+
+          Name "SWAEdit"
+          OutFile "SWAEdit-setup-x64.exe"
+          InstallDir "$PROGRAMFILES64\SWAEdit"
+          InstallDirRegKey HKLM "Software\SWAEdit" "InstallDir"
+          RequestExecutionLevel admin
+
+          !define MUI_ICON "images\icon.ico"
+          !define MUI_ABORTWARNING
+
+          !insertmacro MUI_PAGE_WELCOME
+          !insertmacro MUI_PAGE_DIRECTORY
+          !insertmacro MUI_PAGE_INSTFILES
+          !insertmacro MUI_PAGE_FINISH
+
+          !insertmacro MUI_UNPAGE_CONFIRM
+          !insertmacro MUI_UNPAGE_INSTFILES
+
+          !insertmacro MUI_LANGUAGE "English"
+
+          Section "Install"
+            SetOutPath "$INSTDIR"
+            File /r "package\swaedit\*.*"
+
+            WriteRegStr HKLM "Software\SWAEdit" "InstallDir" "$INSTDIR"
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "DisplayName" "SWAEdit - Star Wars MUD Area Editor"
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "UninstallString" '"$INSTDIR\uninstall.exe"'
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "DisplayIcon" "$INSTDIR\swaedit.exe"
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "Publisher" "swmud.pl"
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "DisplayVersion" "0.1.0"
+            WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "NoModify" 1
+            WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit" \
+              "NoRepair" 1
+            WriteUninstaller "$INSTDIR\uninstall.exe"
+
+            CreateDirectory "$SMPROGRAMS\SWAEdit"
+            CreateShortCut "$SMPROGRAMS\SWAEdit\SWAEdit.lnk" "$INSTDIR\swaedit.exe"
+            CreateShortCut "$SMPROGRAMS\SWAEdit\Uninstall.lnk" "$INSTDIR\uninstall.exe"
+            CreateShortCut "$DESKTOP\SWAEdit.lnk" "$INSTDIR\swaedit.exe"
+          SectionEnd
+
+          Section "Uninstall"
+            RMDir /r "$INSTDIR"
+            RMDir /r "$SMPROGRAMS\SWAEdit"
+            Delete "$DESKTOP\SWAEdit.lnk"
+            DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SWAEdit"
+            DeleteRegKey HKLM "Software\SWAEdit"
+          SectionEnd
+          NSIS
+
+      - name: Convert icon to ICO
+        shell: bash
+        run: |
+          # NSIS needs .ico — create a simple one from the PNG if magick is available
+          if command -v magick &>/dev/null; then
+            magick images/icon.png -define icon:auto-resize=256,128,64,48,32,16 images/icon.ico
+          else
+            # Fallback: skip icon, NSIS will use default
+            sed -i 's/!define MUI_ICON.*/#/' installer.nsi
+          fi
+
+      - name: Build installer
+        shell: cmd
+        run: makensis installer.nsi
 
       - name: Upload Windows artifact
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: swaedit-windows
-          path: SWAEdit-windows-x64.zip
+          path: SWAEdit-setup-x64.exe
 
   # ---------------------------------------------------------------
   # Release — publish artifacts when a tag is pushed
@@ -182,5 +250,5 @@ jobs:
         with:
           files: |
             release/SWAEdit-macos.dmg
-            release/SWAEdit-windows-x64.zip
+            release/SWAEdit-setup-x64.exe
           generate_release_notes: true
