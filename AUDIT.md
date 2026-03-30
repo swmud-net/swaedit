@@ -1,6 +1,39 @@
 # SWAEdit Java-to-C++ Port Audit Report
 
-> 112 Java files audited. 3 audit rounds, 33 gaps found and fixed.
+> 112 Java files audited. 4 audit rounds, 55+ gaps found and fixed.
+
+## Audit Round 4 Summary
+
+Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumberer, Map, Dialogs). Found and fixed 22 parity gaps:
+
+### CRITICAL
+1. **ISO-8859-2 save encoding bug** — XML declaration said ISO-8859-2 but bytes were UTF-8. Fixed: write to buffer, then encode via QStringEncoder to ISO-8859-2.
+
+### HIGH
+2. **Delete buttons bypassed confirmation** — Reset/Shop/Repair delete buttons had no dialog. Fixed: moved confirmation into button handlers, simplified action handlers.
+3. **fillExit/fillExitData missing roomCanChange_ guard** — Signals fired during fill, corrupting exit data. Fixed: save/restore pattern.
+4. **Reset _other types not renumbered** — Missing room_other, mob_other, item_other, ship_other. Fixed.
+5. **Mudprog regex missing m/i/o prefixes** — Java pattern handles `m1234`/`i5678` references. Fixed regex.
+6. **fillExitKeys called on item type change** — Exit key combo not refreshed on type→key change. Fixed.
+7. **fillRoomTeleVnum included current room** — Java excludes it. Fixed.
+8. **prepareLabelName returned empty string** — Java returns "Arg1:" etc. Fixed.
+9. **Item types filtered by visible flag** — Java shows all. Fixed: removed filter.
+10. **mapRoomExitSelected ignored destRoomVnum** — Java matches both direction AND vnum. Fixed.
+11. **canLeaveCurrent dialog title** — Was "Warning", should be "Leaving swaedit". Fixed.
+12. **Exit key combo format/none entry** — Changed to "(vnum) name" format, removed spurious "0 - none". Fixed.
+13. **Wind rose position** — Was top-right, should be bottom-left. Fixed sign in getLeftBottom.
+
+### MEDIUM
+14. **&#13; entity stripping** — Java strips them, C++ preserved them. Fixed in openXml.
+15. **fillAreaData status message** — Shown even when name empty. Fixed: conditional.
+16. **ExtraDescWidget missing keyword warning** — Added "Invalid Keyword" validation. Added modified_ tracking.
+17. **ProgramsWidget missing trigger/program warnings** — Added "Invalid Trigger"/"Invalid Program" validation.
+18. **ProgramsWidget wholePhraseCheckBox** — Now updates triggerEdit text in real-time.
+19. **ProgramsHighlighter bold** — Removed bold weight (Java doesn't use it).
+20. **clearShopData/clearRepairData combo indices** — Changed from 0 to -1 (matching Java).
+21. **fillShopData/fillRepairData population order** — Changed to mobile-first iteration (matching Java).
+22. **Renumber flags check** — Changed `==` to `&` for future-proof bitwise check.
+23. **prepareResetStr regex** — Fixed to match Java character class `[.*]`.
 
 ## GROUP 1: Core (7 files)
 

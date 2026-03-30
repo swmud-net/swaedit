@@ -147,11 +147,10 @@ void MainWindow::setUpItemValueLabels()
 
 void MainWindow::fillItemTypes()
 {
-    // Fill item type combo box
+    // Fill item type combo box (all types, matching Java)
     ui->itemTypeComboBox->clear();
     for (const ItemTypeDef &t : config_.itemTypes) {
-        if (t.visible)
-            ui->itemTypeComboBox->addItem(t.name, t.value);
+        ui->itemTypeComboBox->addItem(t.name, t.value);
     }
 
     // Fill item gender combo box (hardcoded as in original Java)
@@ -517,7 +516,7 @@ bool MainWindow::canLeaveCurrent()
         return true;
 
     QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Warning");
+    msgBox.setWindowTitle("Leaving swaedit");
     msgBox.setText("Area was modified. Are you sure you want to exit?\n"
                    "You will loose your changes if you say Ok now!\n");
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel | QMessageBox::Save);
@@ -583,6 +582,7 @@ void MainWindow::openArea()
 
 void MainWindow::saveArea()
 {
+    if (!areaLoaded_) return;
     if (currentFileName_.isEmpty()) {
         saveAreaAs();
         return;
@@ -601,6 +601,7 @@ void MainWindow::saveArea()
 
 void MainWindow::saveAreaAs()
 {
+    if (!areaLoaded_) return;
     QString fileName = QFileDialog::getSaveFileName(
         this, "Save Area As", currentFileName_, "Area Files (*.xml);;All Files (*)");
     if (fileName.isEmpty())
@@ -688,11 +689,13 @@ void MainWindow::fillAreaData()
 
     headCanChange_ = true;
 
-    statusBar()->showMessage(
-        "'" + area_.head.name + "' loaded with: "
-        + QString::number(area_.objects.size()) + " objects, "
-        + QString::number(area_.mobiles.size()) + " mobiles, "
-        + QString::number(area_.rooms.size()) + " rooms.");
+    if (!area_.head.name.isEmpty()) {
+        statusBar()->showMessage(
+            "'" + area_.head.name + "' loaded with: "
+            + QString::number(area_.objects.size()) + " objects, "
+            + QString::number(area_.mobiles.size()) + " mobiles, "
+            + QString::number(area_.rooms.size()) + " rooms.");
+    }
 }
 
 void MainWindow::clearAreaData()
@@ -1147,6 +1150,10 @@ void MainWindow::onItemTypeComboBoxCurrentIndexChanged(int idx)
     if (!obj) return;
     obj->type = ui->itemTypeComboBox->itemData(idx).toInt();
     setItemValues(obj->type);
+    // Refresh exit key combo if item type changed to "key" (matching Java)
+    if (ui->itemTypeComboBox->itemText(idx).compare("key", Qt::CaseInsensitive) == 0) {
+        fillExitKeys(getCurrentExit());
+    }
     setModified();
 }
 
@@ -2345,10 +2352,11 @@ void MainWindow::fillRoomTeleVnum(Room *room)
     ui->roomTeleVnumComboBox->blockSignals(true);
     ui->roomTeleVnumComboBox->clear();
 
-    ui->roomTeleVnumComboBox->addItem("0 - none", QVariant(0));
+    ui->roomTeleVnumComboBox->addItem("0 - <no tele_vnum>", QVariant(0));
 
     for (int i = 0; i < area_.rooms.size(); ++i) {
         const Room &r = area_.rooms[i];
+        if (&r == room) continue; // exclude current room (matching Java)
         ui->roomTeleVnumComboBox->addItem(
             QString::number(r.vnum) + " - " + r.name,
             QVariant(r.vnum));
@@ -2387,6 +2395,9 @@ Exit *MainWindow::getCurrentExit()
 
 void MainWindow::fillExitData(Room *room)
 {
+    bool tmpRoomCanChange = roomCanChange_;
+    roomCanChange_ = false;
+
     ui->roomExitNavigatorComboBox->blockSignals(true);
     ui->roomExitNavigatorComboBox->clear();
 
@@ -2397,6 +2408,7 @@ void MainWindow::fillExitData(Room *room)
         ui->roomExitFlagsEdit->clear();
         ui->roomExitKeyComboBox->clear();
         ui->roomExitDistanceSpinBox->setValue(0);
+        roomCanChange_ = tmpRoomCanChange;
         return;
     }
 
@@ -2422,16 +2434,20 @@ void MainWindow::fillExitData(Room *room)
     ui->roomExitNavigatorComboBox->blockSignals(false);
 
     fillExit(&room->exits[0]);
+    roomCanChange_ = tmpRoomCanChange;
 }
 
 void MainWindow::fillExit(Exit *exit)
 {
     if (!exit) return;
+    bool tmpRoomCanChange = roomCanChange_;
+    roomCanChange_ = false;
     ui->roomExitKeywordEdit->setText(exit->keyword);
     ui->roomExitDescriptionEdit->setText(exit->description);
     ui->roomExitFlagsEdit->setText(QString::number(exit->flags));
     ui->roomExitDistanceSpinBox->setValue(exit->distance);
     fillExitKeys(exit);
+    roomCanChange_ = tmpRoomCanChange;
 }
 
 void MainWindow::fillExitKeys(Exit *exit)
@@ -2439,13 +2455,11 @@ void MainWindow::fillExitKeys(Exit *exit)
     ui->roomExitKeyComboBox->blockSignals(true);
     ui->roomExitKeyComboBox->clear();
 
-    ui->roomExitKeyComboBox->addItem("0 - none", QVariant(0));
-
     for (int i = 0; i < area_.objects.size(); ++i) {
         const AreaObject &obj = area_.objects[i];
         if (obj.type == keyValue_) {
             ui->roomExitKeyComboBox->addItem(
-                QString::number(obj.vnum) + " - " + obj.name,
+                "(" + QString::number(obj.vnum) + ") " + obj.name,
                 QVariant(obj.vnum));
         }
     }
@@ -2456,12 +2470,12 @@ void MainWindow::fillExitKeys(Exit *exit)
             ui->roomExitKeyComboBox->setCurrentIndex(idx);
         } else {
             ui->roomExitKeyComboBox->addItem(
-                QString::number(exit->key) + " - (other area)",
+                "(" + QString::number(exit->key) + ") (other area)",
                 QVariant(exit->key));
             ui->roomExitKeyComboBox->setCurrentIndex(ui->roomExitKeyComboBox->count() - 1);
         }
     } else {
-        ui->roomExitKeyComboBox->setCurrentIndex(0);
+        ui->roomExitKeyComboBox->setCurrentIndex(-1);
     }
 
     ui->roomExitKeyComboBox->blockSignals(false);
@@ -2810,7 +2824,7 @@ QString MainWindow::prepareResetStr(const AreaReset &reset)
 
     const ResetInfoDef &resDef = resetsMap_[reset.command];
     QString name = resDef.name;
-    name.replace(QRegularExpression("\\[.*\\]"), "");
+    name.replace(QRegularExpression("[.*]"), "");
     QString str = "[" + reset.command + "] " + name;
     if (!resDef.arg1.name.isEmpty())
         str += " {" + resDef.arg1.name + ": " + QString::number(reset.arg1) + "}";
@@ -3105,9 +3119,8 @@ void MainWindow::setupResetLabels(const AreaReset &reset)
 
 QString MainWindow::prepareLabelName(const QString &argName, int idx)
 {
-    Q_UNUSED(idx);
     if (argName.isEmpty())
-        return "";
+        return "Arg" + QString::number(idx) + ":";
     return argName + ":";
 }
 
@@ -3222,6 +3235,11 @@ void MainWindow::onResetDeleteButtonClicked()
     if (!resetCanChange_) return;
     int idx = ui->resetNavigatorComboBox->currentIndex();
     if (idx < 0 || idx >= area_.resets.size()) return;
+
+    QMessageBox::StandardButton button = QMessageBox::question(
+        this, "Deleting Reset", "Are you sure you want to delete the current reset?",
+        QMessageBox::Yes | QMessageBox::No);
+    if (button != QMessageBox::Yes) return;
 
     area_.resets.removeAt(idx);
 
@@ -3406,20 +3424,18 @@ void MainWindow::fillShopData(int shopIndex)
 
     ui->shopKeeperBox->blockSignals(true);
     ui->shopKeeperBox->clear();
-    for (int i = 0; i < area_.shops.size(); ++i) {
-        const Shop &shop = area_.shops[i];
-        QString mobName;
-        for (const Mobile &m : area_.mobiles) {
-            if (m.vnum == shop.keeper) {
-                mobName = m.name;
+    // Iterate mobiles first, adding those that are shopkeepers (matching Java order)
+    for (const Mobile &m : area_.mobiles) {
+        for (const Shop &shop : area_.shops) {
+            if (shop.keeper == m.vnum) {
+                ui->shopKeeperBox->addItem(
+                    QString::number(m.vnum) + " - " + m.name,
+                    QVariant(m.vnum));
                 break;
             }
         }
-        ui->shopKeeperBox->addItem(
-            QString::number(shop.keeper) + " - " + mobName,
-            QVariant(shop.keeper));
     }
-    if (shopIndex >= 0 && shopIndex < area_.shops.size())
+    if (shopIndex >= 0 && shopIndex < ui->shopKeeperBox->count())
         ui->shopKeeperBox->setCurrentIndex(shopIndex);
     ui->shopKeeperBox->blockSignals(false);
 
@@ -3458,11 +3474,11 @@ void MainWindow::clearShopData()
     ui->shopKeeperBox->clear();
     ui->shopKeeperBox->blockSignals(false);
 
-    ui->shopType0Box->setCurrentIndex(0);
-    ui->shopType1Box->setCurrentIndex(0);
-    ui->shopType2Box->setCurrentIndex(0);
-    ui->shopType3Box->setCurrentIndex(0);
-    ui->shopType4Box->setCurrentIndex(0);
+    ui->shopType0Box->setCurrentIndex(-1);
+    ui->shopType1Box->setCurrentIndex(-1);
+    ui->shopType2Box->setCurrentIndex(-1);
+    ui->shopType3Box->setCurrentIndex(-1);
+    ui->shopType4Box->setCurrentIndex(-1);
     ui->shopProfitBuyBox->setValue(0);
     ui->shopProfitSellBox->setValue(0);
     ui->shopOpenBox->setValue(0);
@@ -3608,6 +3624,11 @@ void MainWindow::onShopDeleteButtonClicked()
     int idx = ui->shopKeeperBox->currentIndex();
     if (idx < 0 || idx >= area_.shops.size()) return;
 
+    QMessageBox::StandardButton button = QMessageBox::question(
+        this, "Deleting Shop", "Are you sure you want to delete the current shop?",
+        QMessageBox::Yes | QMessageBox::No);
+    if (button != QMessageBox::Yes) return;
+
     area_.shops.removeAt(idx);
 
     if (!area_.shops.isEmpty())
@@ -3647,20 +3668,18 @@ void MainWindow::fillRepairData(int repairIndex)
 
     ui->repairKeeperBox->blockSignals(true);
     ui->repairKeeperBox->clear();
-    for (int i = 0; i < area_.repairs.size(); ++i) {
-        const Repair &repair = area_.repairs[i];
-        QString mobName;
-        for (const Mobile &m : area_.mobiles) {
-            if (m.vnum == repair.keeper) {
-                mobName = m.name;
+    // Iterate mobiles first, adding those that are repair keepers (matching Java order)
+    for (const Mobile &m : area_.mobiles) {
+        for (const Repair &repair : area_.repairs) {
+            if (repair.keeper == m.vnum) {
+                ui->repairKeeperBox->addItem(
+                    QString::number(m.vnum) + " - " + m.name,
+                    QVariant(m.vnum));
                 break;
             }
         }
-        ui->repairKeeperBox->addItem(
-            QString::number(repair.keeper) + " - " + mobName,
-            QVariant(repair.keeper));
     }
-    if (repairIndex >= 0 && repairIndex < area_.repairs.size())
+    if (repairIndex >= 0 && repairIndex < ui->repairKeeperBox->count())
         ui->repairKeeperBox->setCurrentIndex(repairIndex);
     ui->repairKeeperBox->blockSignals(false);
 
@@ -3698,10 +3717,10 @@ void MainWindow::clearRepairData()
     ui->repairKeeperBox->clear();
     ui->repairKeeperBox->blockSignals(false);
 
-    ui->repairType0Box->setCurrentIndex(0);
-    ui->repairType1Box->setCurrentIndex(0);
-    ui->repairType2Box->setCurrentIndex(0);
-    ui->repairShopTypeBox->setCurrentIndex(0);
+    ui->repairType0Box->setCurrentIndex(-1);
+    ui->repairType1Box->setCurrentIndex(-1);
+    ui->repairType2Box->setCurrentIndex(-1);
+    ui->repairShopTypeBox->setCurrentIndex(-1);
     ui->repairProfitFixBox->setValue(0);
     ui->repairOpenBox->setValue(0);
     ui->repairCloseBox->setValue(0);
@@ -3792,6 +3811,11 @@ void MainWindow::onRepairDeleteButtonClicked()
     if (!repairCanChange_) return;
     int idx = ui->repairKeeperBox->currentIndex();
     if (idx < 0 || idx >= area_.repairs.size()) return;
+
+    QMessageBox::StandardButton button = QMessageBox::question(
+        this, "Deleting Repair", "Are you sure you want to delete the current repair?",
+        QMessageBox::Yes | QMessageBox::No);
+    if (button != QMessageBox::Yes) return;
 
     area_.repairs.removeAt(idx);
 
@@ -4178,11 +4202,6 @@ void MainWindow::onActionCreateNewReset()
 
 void MainWindow::onActionDeleteCurrentReset()
 {
-    QMessageBox::StandardButton button = QMessageBox::question(
-        this, "Deleting Reset", "Are you sure you want to delete the current reset?",
-        QMessageBox::Yes | QMessageBox::No);
-    if (button != QMessageBox::Yes) return;
-
     onResetDeleteButtonClicked();
 }
 
@@ -4193,11 +4212,6 @@ void MainWindow::onActionCreateNewShop()
 
 void MainWindow::onActionDeleteCurrentShop()
 {
-    QMessageBox::StandardButton button = QMessageBox::question(
-        this, "Deleting Shop", "Are you sure you want to delete the current shop?",
-        QMessageBox::Yes | QMessageBox::No);
-    if (button != QMessageBox::Yes) return;
-
     onShopDeleteButtonClicked();
 }
 
@@ -4208,11 +4222,6 @@ void MainWindow::onActionCreateNewRepair()
 
 void MainWindow::onActionDeleteCurrentRepair()
 {
-    QMessageBox::StandardButton button = QMessageBox::question(
-        this, "Deleting Repair", "Are you sure you want to delete the current repair?",
-        QMessageBox::Yes | QMessageBox::No);
-    if (button != QMessageBox::Yes) return;
-
     onRepairDeleteButtonClicked();
 }
 
@@ -4313,7 +4322,6 @@ void MainWindow::mapRoomVnumSelected(int vnum)
     for (int i = 0; i < area_.rooms.size(); ++i) {
         if (area_.rooms[i].vnum == vnum) {
             fillRoomData(i);
-            ui->tabWidget->setCurrentWidget(ui->roomdata);
             break;
         }
     }
@@ -4322,17 +4330,16 @@ void MainWindow::mapRoomVnumSelected(int vnum)
 
 void MainWindow::mapRoomExitSelected(int ownerRoomVnum, int exitDirection, int destRoomVnum)
 {
-    Q_UNUSED(destRoomVnum);
     mapSelection_ = true;
 
     for (int i = 0; i < area_.rooms.size(); ++i) {
         if (area_.rooms[i].vnum == ownerRoomVnum) {
             fillRoomData(i);
-            ui->tabWidget->setCurrentWidget(ui->roomdata);
 
             Room *room = &area_.rooms[i];
             for (int j = 0; j < room->exits.size(); ++j) {
-                if (room->exits[j].direction == exitDirection) {
+                if (room->exits[j].direction == exitDirection &&
+                    room->exits[j].vnum == destRoomVnum) {
                     ui->roomExitNavigatorComboBox->setCurrentIndex(j);
                     break;
                 }

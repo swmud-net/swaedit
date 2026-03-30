@@ -27,7 +27,6 @@ ProgramsHighlighter::ProgramsHighlighter(QTextDocument *parent,
 
         QTextCharFormat format;
         format.setForeground(color);
-        format.setFontWeight(QFont::Bold);
 
         bool isVariable = (def.type == "variable" || def.type == "ratmVariable");
 

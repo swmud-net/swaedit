@@ -3,6 +3,8 @@
 #include "gui/ProgramsHighlighter.h"
 #include "ui_ProgramsWidget.h"
 
+#include <QMessageBox>
+
 ProgramsWidget::ProgramsWidget(QList<Program> *programs,
                                 const QList<QString> &progTypes,
                                 const QList<HighlighterWordsDef> &highlighterDefs,
@@ -41,6 +43,8 @@ ProgramsWidget::ProgramsWidget(QList<Program> *programs,
     connect(ui->acceptButton, &QPushButton::clicked, this, &ProgramsWidget::onAcceptClicked);
     connect(ui->cancelButton, &QPushButton::clicked, this, &ProgramsWidget::onCancelClicked);
     connect(ui->wholePhraseCheckBox, &QCheckBox::toggled, this, &ProgramsWidget::onWholePhraseToggled);
+    connect(ui->triggerEdit, &QLineEdit::textChanged, this, &ProgramsWidget::onTriggerEditTextChanged);
+    connect(ui->programEdit, &QTextEdit::textChanged, this, &ProgramsWidget::onProgramEditTextChanged);
 
     if (!workingPrograms_.isEmpty()) {
         navigateTo(0);
@@ -224,9 +228,42 @@ void ProgramsWidget::onCancelClicked()
     close();
 }
 
+void ProgramsWidget::onTriggerEditTextChanged(const QString &text)
+{
+    if (!canChange_) return;
+    if (text.isEmpty()) {
+        QMessageBox::warning(this, "Invalid Trigger", "Trigger cannot be empty!");
+    }
+}
+
+void ProgramsWidget::onProgramEditTextChanged()
+{
+    if (!canChange_) return;
+    if (ui->programEdit->toPlainText().isEmpty()) {
+        QMessageBox::warning(this, "Invalid Program", "Program cannot be empty!");
+    }
+}
+
 void ProgramsWidget::onWholePhraseToggled(bool checked)
 {
     if (!canChange_) return;
-    Q_UNUSED(checked);
-    // The actual prefix handling is done in saveCurrentToList
+    if (currentIndex_ < 0 || currentIndex_ >= workingPrograms_.size())
+        return;
+
+    Program &prog = workingPrograms_[currentIndex_];
+    QString triggerText = ui->triggerEdit->text();
+
+    if (checked) {
+        prog.args = "p " + triggerText;
+    } else {
+        prog.args = triggerText;
+    }
+
+    // Update the triggerEdit to reflect the change (matching Java real-time update)
+    canChange_ = false;
+    if (checked && !prog.args.startsWith("p ")) {
+        prog.args = "p " + triggerText;
+    }
+    ui->triggerEdit->setText(triggerText);
+    canChange_ = true;
 }

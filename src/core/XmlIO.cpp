@@ -2,8 +2,10 @@
 #include "model/Area.h"
 #include "model/ConfigData.h"
 
+#include <QBuffer>
 #include <QCoreApplication>
 #include <QFile>
+#include <QStringEncoder>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -103,15 +105,27 @@ static qint64 readLong(QXmlStreamReader &xml)
     return xml.readElementText().toLongLong();
 }
 
-// Open a file and position the reader past the XML declaration.
+// Open a file, strip &#13; entities (matching Java filter()), and set up the reader.
 // Returns false if the file can't be opened.
-static bool openXml(const QString &filePath, QFile &file, QXmlStreamReader &xml)
+// The QByteArray `buf` must outlive the QXmlStreamReader.
+static bool openXml(const QString &filePath, QFile &file, QXmlStreamReader &xml, QByteArray &buf)
 {
     file.setFileName(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!file.open(QIODevice::ReadOnly))
         return false;
-    xml.setDevice(&file);
+    buf = file.readAll();
+    file.close();
+    // Strip &#13; character references (matching original Java filter)
+    buf.replace("&#13;", "");
+    xml.addData(buf);
     return true;
+}
+
+// Overload for backward compatibility — callers that don't need &#13; stripping
+static bool openXml(const QString &filePath, QFile &file, QXmlStreamReader &xml)
+{
+    QByteArray buf;
+    return openXml(filePath, file, xml, buf);
 }
 
 // ---------------------------------------------------------------------------
@@ -1026,18 +1040,18 @@ static void writeLong(QXmlStreamWriter &xml, const QString &tag, qint64 val)
 
 bool XmlIO::saveArea(const Area &area, const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
+    // Write XML to an in-memory UTF-8 buffer first, then encode to ISO-8859-2.
+    // This matches the original Java JAXB marshaller behaviour which wrote
+    // ISO-8859-2 encoded bytes with the matching XML encoding declaration.
+    QByteArray utf8Buf;
+    QBuffer buffer(&utf8Buf);
+    buffer.open(QIODevice::WriteOnly);
 
-    // Write the XML declaration manually with ISO-8859-2 encoding to match the
-    // original Java output
-    file.write("<?xml version=\"1.0\" encoding=\"ISO-8859-2\"?>\n");
-
-    QXmlStreamWriter xml(&file);
+    QXmlStreamWriter xml(&buffer);
     xml.setAutoFormatting(true);
     xml.setAutoFormattingIndent(1);
-    // Do not call writeStartDocument() — we wrote the declaration above
+    // Write declaration — we will patch encoding below
+    xml.writeStartDocument("1.0");
     xml.writeStartElement("area");
     xml.writeDefaultNamespace("http://swmud.pl/ns/swmud/1.0/area");
 
@@ -1292,5 +1306,21 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
 
     xml.writeEndElement(); // area
     xml.writeEndDocument();
+    buffer.close();
+
+    // Convert the UTF-8 buffer to ISO-8859-2 encoded bytes
+    QString xmlString = QString::fromUtf8(utf8Buf);
+    // Replace the encoding declaration from UTF-8 to ISO-8859-2
+    xmlString.replace(QStringLiteral("encoding=\"UTF-8\""),
+                      QStringLiteral("encoding=\"ISO-8859-2\""));
+
+    QStringEncoder encoder("ISO-8859-2");
+    QByteArray iso88592Bytes = encoder.encode(xmlString);
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+    file.write(iso88592Bytes);
+    file.close();
     return true;
 }

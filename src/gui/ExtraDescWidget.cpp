@@ -2,6 +2,8 @@
 #include "gui/MainWindow.h"
 #include "ui_ExtraDescWidget.h"
 
+#include <QMessageBox>
+
 ExtraDescWidget::ExtraDescWidget(QList<ExtraDesc> *extraDescs,
                                  MainWindow *mainWindow,
                                  QWidget *parent)
@@ -60,7 +62,7 @@ void ExtraDescWidget::fillNavigation()
 
     bool hasItems = !workingDescs_.isEmpty();
     setFieldsEnabled(hasItems);
-    ui->acceptButton->setEnabled(true);
+    ui->acceptButton->setEnabled(modified_);
 
     if (hasItems) {
         canChange_ = true;
@@ -119,7 +121,13 @@ void ExtraDescWidget::onKeywordsChanged(const QString &text)
     if (currentIndex_ < 0 || currentIndex_ >= workingDescs_.size())
         return;
 
+    if (text.isEmpty()) {
+        QMessageBox::warning(this, "Invalid Keyword", "Keyword cannot be empty!");
+    }
+
     workingDescs_[currentIndex_].keyword = text;
+    modified_ = true;
+    ui->acceptButton->setEnabled(true);
 
     // Update navigation combo text
     ui->navigationComboBox->blockSignals(true);
@@ -134,6 +142,8 @@ void ExtraDescWidget::onDescriptionChanged()
         return;
 
     workingDescs_[currentIndex_].description = ui->descriptionEdit->toPlainText();
+    modified_ = true;
+    ui->acceptButton->setEnabled(true);
 }
 
 void ExtraDescWidget::onAddClicked()
@@ -162,6 +172,7 @@ void ExtraDescWidget::onAddClicked()
     ed.keyword = newName;
     ed.description = "";
     workingDescs_.append(ed);
+    modified_ = true;
 
     fillNavigation();
     int newIdx = workingDescs_.size() - 1;
@@ -179,6 +190,7 @@ void ExtraDescWidget::onDeleteClicked()
 
     workingDescs_.removeAt(currentIndex_);
     currentIndex_ = -1;
+    modified_ = (workingDescs_.size() != originalDescs_->size());
 
     fillNavigation();
 

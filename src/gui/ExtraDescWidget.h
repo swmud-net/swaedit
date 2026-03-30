@@ -41,6 +41,7 @@ private:
     QList<ExtraDesc> workingDescs_;
     MainWindow *mainWindow_;
     bool canChange_ = false;
+    bool modified_ = false;
     int currentIndex_ = -1;
 };
 

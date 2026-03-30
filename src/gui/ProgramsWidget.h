@@ -35,6 +35,8 @@ private slots:
     void onAcceptClicked();
     void onCancelClicked();
     void onWholePhraseToggled(bool checked);
+    void onTriggerEditTextChanged(const QString &text);
+    void onProgramEditTextChanged();
 
 private:
     void navigateTo(int idx);

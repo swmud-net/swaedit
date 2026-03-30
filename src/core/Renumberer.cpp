@@ -30,7 +30,7 @@ void Renumberer::renumber()
     for (AreaObject &obj : area_->objects) {
         obj.vnum += diff;
 
-        if (flags_ == RENUMBER_MUDPROGS) {
+        if (flags_ & RENUMBER_MUDPROGS) {
             for (Program &prog : obj.programs) {
                 renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
             }
@@ -41,7 +41,7 @@ void Renumberer::renumber()
     for (Mobile &mob : area_->mobiles) {
         mob.vnum += diff;
 
-        if (flags_ == RENUMBER_MUDPROGS) {
+        if (flags_ & RENUMBER_MUDPROGS) {
             for (Program &prog : mob.programs) {
                 renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
             }
@@ -64,7 +64,7 @@ void Renumberer::renumber()
             room.televnum += diff;
         }
 
-        if (flags_ == RENUMBER_MUDPROGS) {
+        if (flags_ & RENUMBER_MUDPROGS) {
             for (Program &prog : room.programs) {
                 renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
             }
@@ -80,8 +80,10 @@ void Renumberer::renumber()
 
         // Helper lambda to renumber a single arg based on its type
         auto renumberArg = [&](int &argVal, const ResetArgDef &argDef) {
-            if (argDef.type == "room" || argDef.type == "mob" ||
-                argDef.type == "item" || argDef.type == "ship") {
+            if (argDef.type == "room" || argDef.type == "room_other" ||
+                argDef.type == "mob"  || argDef.type == "mob_other"  ||
+                argDef.type == "item" || argDef.type == "item_other" ||
+                argDef.type == "ship" || argDef.type == "ship_other") {
                 if (argVal >= oldLvnum && argVal <= oldUvnum) {
                     argVal += diff;
                 }
@@ -119,8 +121,9 @@ void Renumberer::renumber()
 
 void Renumberer::renumberMudprogText(QString &comlist, int oldLvnum, int oldUvnum, int diff)
 {
-    // Scan for numbers in vnum range and replace them
-    QRegularExpression re("\\b(\\d+)\\b");
+    // Scan for numbers optionally prefixed with m/i/o (matching Java regex)
+    // Pattern matches: optional m/i/o prefix followed by digits starting with 1-9
+    QRegularExpression re("\\b([mio]?)([1-9][0-9]*)\\b", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatchIterator it = re.globalMatch(comlist);
 
     // Collect replacements in reverse order to avoid offset issues
@@ -133,13 +136,15 @@ void Renumberer::renumberMudprogText(QString &comlist, int oldLvnum, int oldUvnu
 
     while (it.hasNext()) {
         QRegularExpressionMatch match = it.next();
+        QString prefix = match.captured(1);
         bool ok;
-        int num = match.captured(1).toInt(&ok);
+        int num = match.captured(2).toInt(&ok);
         if (ok && num >= oldLvnum && num <= oldUvnum) {
             int newNum = num + diff;
             Replacement r;
-            r.start = match.capturedStart(1);
-            r.length = match.capturedLength(1);
+            // Replace only the numeric part, preserving the prefix
+            r.start = match.capturedStart(2);
+            r.length = match.capturedLength(2);
             r.newText = QString::number(newNum);
             replacements.append(r);
 

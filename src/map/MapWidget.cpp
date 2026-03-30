@@ -621,8 +621,8 @@ void MapWidget::drawWindRose()
     const float fScale = 0.1f;
     const float zRose = -2.0f;
 
-    // getLeftBottom equivalent
-    float topVal = std::tan(fov * static_cast<float>(M_PI) / 360.0f) * (-zRose);
+    // getLeftBottom equivalent — places wind rose in bottom-left (matching Java)
+    float topVal = std::tan(fov * static_cast<float>(M_PI) / 360.0f) * zRose;
     float leftVal = aspect_ * topVal;
 
     glTranslatef(leftVal + fScale, topVal + fScale, zRose);
