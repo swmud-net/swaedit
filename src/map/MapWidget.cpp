@@ -213,7 +213,9 @@ void MapWidget::resizeGL(int w, int h)
     h_ = h;
     aspect_ = static_cast<float>(w) / static_cast<float>(h);
 
-    glViewport(0, 0, w, h);
+    // Use device pixels for glViewport (w/h are logical on Retina displays)
+    qreal dpr = devicePixelRatioF();
+    glViewport(0, 0, static_cast<int>(w * dpr), static_cast<int>(h * dpr));
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -661,7 +663,31 @@ int MapWidget::decodePickingColor(unsigned char r, unsigned char g, unsigned cha
 
 void MapWidget::performSelection(int cx, int cy)
 {
-    // Save current GL state
+    qreal dpr = devicePixelRatioF();
+    int fbWidth = static_cast<int>(w_ * dpr);
+    int fbHeight = static_cast<int>(h_ * dpr);
+
+    // QOpenGLWidget's internal FBO is multisampled (setSamples(4)).
+    // glReadPixels on a multisampled FBO returns incorrect values on macOS.
+    // Create a temporary non-multisampled FBO for the picking pass.
+    GLuint pickFBO = 0, colorRBO = 0, depthRBO = 0;
+    glGenFramebuffers(1, &pickFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pickFBO);
+
+    glGenRenderbuffers(1, &colorRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, colorRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, fbWidth, fbHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                              GL_RENDERBUFFER, colorRBO);
+
+    glGenRenderbuffers(1, &depthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbWidth, fbHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, depthRBO);
+
+    // Render picking scene into the non-multisampled FBO
+    glViewport(0, 0, fbWidth, fbHeight);
     glDisable(GL_BLEND);
     glDisable(GL_MULTISAMPLE);
     glClearColor(0, 0, 0, 1);
@@ -669,9 +695,11 @@ void MapWidget::performSelection(int cx, int cy)
 
     drawSceneForPicking();
 
-    // Read the pixel at click position
+    // Read pixel at click position (mouse coords are logical, FBO is device pixels)
+    int px = static_cast<int>(cx * dpr);
+    int py = fbHeight - static_cast<int>(cy * dpr);
     unsigned char pixel[4];
-    glReadPixels(cx, h_ - cy, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    glReadPixels(px, py, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
     int chosen = decodePickingColor(pixel[0], pixel[1], pixel[2]);
 
@@ -682,7 +710,12 @@ void MapWidget::performSelection(int cx, int cy)
         selectedExit_ = nullptr;
     }
 
-    // Restore
+    // Restore QOpenGLWidget's default FBO and clean up
+    glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+    glDeleteRenderbuffers(1, &depthRBO);
+    glDeleteRenderbuffers(1, &colorRBO);
+    glDeleteFramebuffers(1, &pickFBO);
+
     glEnable(GL_BLEND);
     if (multisample_) {
         glEnable(GL_MULTISAMPLE);
@@ -694,6 +727,10 @@ void MapWidget::drawSceneForPicking()
 {
     if (!islandRooms_.contains(currentIsland_))
         return;
+
+    // Ensure viewport matches device pixel dimensions for picking
+    qreal dpr = devicePixelRatioF();
+    glViewport(0, 0, static_cast<int>(w_ * dpr), static_cast<int>(h_ * dpr));
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -848,17 +885,11 @@ void MapWidget::drawTextOverlay()
         --showIslandsLayers_;
     }
 
-    // Help text at top right, left-justified block
+    // Help text at top left, left-justified block
     if (showHelp_) {
         int y = lineHeight + 5;
-        int maxWidth = 0;
         for (const QString &key : MENU_KEYS) {
-            int tw = fm.horizontalAdvance(key);
-            if (tw > maxWidth) maxWidth = tw;
-        }
-        int xStart = w_ - maxWidth - 10;
-        for (const QString &key : MENU_KEYS) {
-            painter.drawText(xStart, y, key);
+            painter.drawText(10, y, key);
             y += lineHeight;
         }
     }
@@ -1023,14 +1054,19 @@ void MapWidget::takeScreenshot()
         format = QImage::Format_ARGB32;
     }
 
-    QVector<unsigned char> pixels(w_ * h_ * BPP);
-    glReadPixels(0, 0, w_, h_, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+    // Use device pixel dimensions for glReadPixels
+    qreal dpr = devicePixelRatioF();
+    int pw = static_cast<int>(w_ * dpr);
+    int ph = static_cast<int>(h_ * dpr);
+
+    QVector<unsigned char> pixels(pw * ph * BPP);
+    glReadPixels(0, 0, pw, ph, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 
     // Flip vertically and convert RGBA to ARGB
-    QImage img(w_, h_, format);
-    for (int y = 0; y < h_; ++y) {
-        for (int x = 0; x < w_; ++x) {
-            int srcIdx = ((h_ - 1 - y) * w_ + x) * BPP;
+    QImage img(pw, ph, format);
+    for (int y = 0; y < ph; ++y) {
+        for (int x = 0; x < pw; ++x) {
+            int srcIdx = ((ph - 1 - y) * pw + x) * BPP;
             unsigned char r = pixels[srcIdx];
             unsigned char g = pixels[srcIdx + 1];
             unsigned char b = pixels[srcIdx + 2];
