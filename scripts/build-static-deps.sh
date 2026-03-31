@@ -42,9 +42,14 @@ export CXXFLAGS="-fPIC -O2"
 fetch() {
     local url="$1" file dir
     file="$(basename "$url")"
-    [ -f "$SRC/$file" ] || wget -q -P "$SRC" "$url"
+    if [ ! -f "$SRC/$file" ]; then
+        echo "Downloading $file ..."
+        wget --tries=3 --timeout=30 -nv -P "$SRC" "$url"
+    fi
     dir="$(tar tf "$SRC/$file" | head -1 | cut -d/ -f1)"
-    [ -d "$SRC/$dir" ] || tar xf "$SRC/$file" -C "$SRC"
+    if [ ! -d "$SRC/$dir" ]; then
+        tar xf "$SRC/$file" -C "$SRC"
+    fi
     echo "$SRC/$dir"
 }
 
@@ -55,7 +60,7 @@ step() { printf '\n========================================\n %s\n==============
 # ===================================================================
 
 step "zlib ${ZLIB_VER}"
-d=$(fetch "https://zlib.net/zlib-${ZLIB_VER}.tar.gz")
+d=$(fetch "https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz")
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
