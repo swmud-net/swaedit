@@ -135,7 +135,7 @@ d=$(fetch "https://download.sourceforge.net/freetype/freetype-${FREETYPE_VER}.ta
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON
+    -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_BZIP2=ON
 cmake --build build -j"$JOBS" && cmake --install build
 
 step "harfbuzz ${HARFBUZZ_VER} (no glib, no ICU, no graphite2)"
@@ -151,7 +151,7 @@ step "freetype ${FREETYPE_VER} (pass 2: with harfbuzz)"
 cd "$d/../freetype-${FREETYPE_VER}" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DFT_DISABLE_HARFBUZZ=OFF -DFT_DISABLE_BROTLI=ON
+    -DFT_DISABLE_HARFBUZZ=OFF -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_BZIP2=ON
 cmake --build build -j"$JOBS" && cmake --install build
 
 step "fontconfig ${FONTCONFIG_VER} (no glib)"
