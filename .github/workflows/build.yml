@@ -39,41 +39,12 @@ jobs:
   # ---------------------------------------------------------------
   build-linux-portable:
     runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/swmud-net/swaedit-linux-builder:v1
+    permissions:
+      packages: read
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install system dev packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build pkg-config meson \
-            python3 python3-mako python3-ply python3-yaml \
-            p7zip-full \
-            zlib1g-dev libpng-dev libbz2-dev \
-            libexpat1-dev libpcre2-dev \
-            libfreetype-dev libfontconfig-dev libharfbuzz-dev \
-            libxcb1-dev libxcb-glx0-dev libxcb-icccm4-dev \
-            libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev \
-            libxcb-render-util0-dev libxcb-render0-dev libxcb-shape0-dev \
-            libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev \
-            libxcb-xinerama0-dev libxcb-xinput-dev libxcb-xkb-dev \
-            libxcb-cursor-dev \
-            libx11-dev libx11-xcb-dev libxext-dev libxshmfence-dev \
-            libxrender-dev libxi-dev libxrandr-dev \
-            libxkbcommon-dev libxkbcommon-x11-dev \
-            libgl-dev libglu1-mesa-dev libdrm-dev \
-            libxml2-dev
-
-      - name: Cache static dependencies (Qt + Mesa)
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: /opt/static-deps
-          key: static-deps-v1
-
-      - name: Build static dependencies (Qt + Mesa)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: ./scripts/build-static-deps.sh
 
       - name: Build swaedit (static)
         run: ./scripts/build-swaedit-static.sh

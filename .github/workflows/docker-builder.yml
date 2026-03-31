@@ -1,0 +1,30 @@
+name: Build Linux Builder Image
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Dockerfile.linux-builder'
+      - 'scripts/build-static-deps.sh'
+    branches: [main]
+
+jobs:
+  build-image:
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.linux-builder
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/swaedit-linux-builder:v1
