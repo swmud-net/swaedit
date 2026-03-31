@@ -116,7 +116,7 @@ rm -rf builddir
 echo "Configuring Mesa (softpipe, gallium-xlib GLX)..."
 meson setup builddir \
     --prefix="$PREFIX/mesa" \
-    -Dgallium-drivers=softpipe \
+    -Dgallium-drivers=swrast \
     -Dvulkan-drivers= \
     -Dglx=gallium-xlib \
     -Degl=disabled \
