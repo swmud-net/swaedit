@@ -64,15 +64,14 @@ echo "Configuring Qt (static, xcb, desktop OpenGL)..."
     -xcb \
     -bundled-xcb-xinput \
     -opengl desktop \
-    -no-eglfs \
-    -no-wayland \
-    -no-cups \
-    -no-dbus \
     -nomake examples \
     -nomake tests \
     -- \
     -DCMAKE_C_FLAGS="-fPIC" \
-    -DCMAKE_CXX_FLAGS="-fPIC"
+    -DCMAKE_CXX_FLAGS="-fPIC" \
+    -DFEATURE_eglfs=OFF \
+    -DFEATURE_cups=OFF \
+    -DFEATURE_dbus=OFF
 
 echo "Building Qt (this takes 20-40 minutes)..."
 cmake --build build -j"$JOBS"
