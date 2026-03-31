@@ -21,13 +21,13 @@ JOBS="$(nproc)"
 # --- Versions ---
 ZLIB_VER=1.3.2
 BZIP2_VER=1.0.8
-EXPAT_VER=2.6.2
-PCRE2_VER=10.43
-LIBPNG_VER=1.6.43
-LIBXML2_VER=2.12.7
-FREETYPE_VER=2.13.2
-HARFBUZZ_VER=8.3.0
-FONTCONFIG_VER=2.14.2
+EXPAT_VER=2.7.5
+PCRE2_VER=10.47
+LIBPNG_VER=1.6.56
+LIBXML2_VER=2.15.2
+FREETYPE_VER=2.14.3
+HARFBUZZ_VER=13.2.1
+FONTCONFIG_VER=2.17.1
 QT_VER="${QT_VERSION:-6.8.1}"
 QT_MAJOR_MINOR="$(echo "$QT_VER" | cut -d. -f1-2)"
 MESA_VER="${MESA_VERSION:-23.3.6}"
@@ -75,7 +75,8 @@ install -Dm644 libbz2.a "$PREFIX/lib/libbz2.a"
 install -Dm644 bzlib.h "$PREFIX/include/bzlib.h"
 
 step "expat ${EXPAT_VER}"
-d=$(fetch "https://github.com/libexpat/libexpat/releases/download/R_2_6_2/expat-${EXPAT_VER}.tar.xz")
+EXPAT_TAG="R_$(echo "$EXPAT_VER" | tr '.' '_')"
+d=$(fetch "https://github.com/libexpat/libexpat/releases/download/${EXPAT_TAG}/expat-${EXPAT_VER}.tar.xz")
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -103,7 +104,8 @@ cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
 cmake --build build -j"$JOBS" && cmake --install build
 
 step "libxml2 ${LIBXML2_VER} (no ICU, no LZMA)"
-d=$(fetch "https://download.gnome.org/sources/libxml2/2.12/libxml2-${LIBXML2_VER}.tar.xz")
+LIBXML2_MAJOR_MINOR="$(echo "$LIBXML2_VER" | cut -d. -f1-2)"
+d=$(fetch "https://download.gnome.org/sources/libxml2/${LIBXML2_MAJOR_MINOR}/libxml2-${LIBXML2_VER}.tar.xz")
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
