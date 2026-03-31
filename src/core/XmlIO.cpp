@@ -148,7 +148,7 @@ QList<FlagDef> XmlIO::loadFlags(const QString &filePath)
                 xml.readNext();
                 if (!xml.isStartElement()) continue;
                 if (xml.name() == u"name")       f.name = readText(xml);
-                else if (xml.name() == u"value")  f.value = readInt(xml);
+                else if (xml.name() == u"value")  f.value = readLong(xml);
             }
             result.append(f);
         }

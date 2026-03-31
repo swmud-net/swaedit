@@ -1,6 +1,16 @@
 # SWAEdit Java-to-C++ Port Audit Report
 
-> 112 Java files audited. 6 audit rounds, 74+ gaps found and fixed.
+> 112 Java files audited. 7 audit rounds, 77+ gaps found and fixed.
+
+## Audit Round 7 Summary
+
+Focused audit on Flags and associated widgets (FlagsWidget, ValueFlagsWidget, ResetFlagsWidget, FlagDef model, XmlIO flag loading). Found and fixed 3 parity gaps:
+
+### CRITICAL
+1. **FlagDef.value was int (32-bit)** — Java uses BigInteger. Five XML flag files (roomflags, mobileaffectedflags, itemextraflags, xflags, attackflags) have values of 2^31 = 2,147,483,648 which overflows int. Changed `FlagDef.value` to `qint64` and flag loading from `readInt()` to `readLong()`.
+
+### HIGH
+2. **NONE checkbox handling differed from Java** — C++ had a special case: NONE only checked when flagsValue == 0, and checking NONE cleared all flags. Java uses generic bitwise check `(x & 0) == 0` (always true) and OR/AND with 0 (no-op). Fixed to match Java: NONE is always checked, checking/unchecking it has no effect on the value.
 
 ## Audit Round 6 Summary
 
@@ -339,4 +349,5 @@ Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumbe
 - **Round 4:** 22 gaps found (1 CRITICAL, 12 HIGH, 9 MEDIUM) — all fixed
 - **Round 5:** 3 gaps found (2 MEDIUM, 1 LOW) — all fixed
 - **Round 6:** 16 gaps found (16 MEDIUM) — all fixed
-- **Total gaps found and fixed:** 74
+- **Round 7:** 3 gaps found (1 CRITICAL, 2 HIGH) — all fixed
+- **Total gaps found and fixed:** 77

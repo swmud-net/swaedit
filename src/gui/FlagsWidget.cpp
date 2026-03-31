@@ -43,12 +43,8 @@ FlagsWidget::FlagsWidget(const QList<FlagDef> &flagList,
         QCheckBox *cb = new QCheckBox(flag.name);
         cb->setObjectName(QString::number(flag.value));
 
-        bool checked = false;
-        if (flag.value == 0) {
-            checked = (flagsValue_ == 0);
-        } else {
-            checked = ((flagsValue_ & static_cast<qint64>(flag.value)) == static_cast<qint64>(flag.value));
-        }
+        // Java: (flagsValue & flagValue) == flagValue — for NONE (0) this is always true
+        bool checked = ((flagsValue_ & flag.value) == flag.value);
         cb->setChecked(checked);
 
         int col = i / ROWS_PER_COLUMN;
@@ -96,17 +92,12 @@ void FlagsWidget::onCheckBoxStateChanged(int state)
     qint64 flagValue = cb->objectName().toLongLong(&ok);
     if (!ok) return;
 
-    if (flagValue == 0) {
-        // NONE flag: if checked, clear all bits; if unchecked, do nothing special
-        if (state == Qt::Checked) {
-            flagsValue_ = 0;
-        }
+    // Java: checked → flagsValue |= flagValue; unchecked → flagsValue &= ~flagValue
+    // For NONE (0): |= 0 is no-op, &= ~0 is no-op — matches Java behavior
+    if (state == Qt::Checked) {
+        flagsValue_ |= flagValue;
     } else {
-        if (state == Qt::Checked) {
-            flagsValue_ |= flagValue;
-        } else {
-            flagsValue_ &= ~flagValue;
-        }
+        flagsValue_ &= ~flagValue;
     }
 
     updatingFromCode_ = true;
@@ -148,12 +139,8 @@ void FlagsWidget::updateCheckboxesFromValue()
         qint64 flagValue = cb->objectName().toLongLong(&ok);
         if (!ok) continue;
 
-        bool checked = false;
-        if (flagValue == 0) {
-            checked = (flagsValue_ == 0);
-        } else {
-            checked = ((flagsValue_ & flagValue) == flagValue);
-        }
+        // Java: (flagsValue & flagValue) == flagValue — for NONE (0) always true
+        bool checked = ((flagsValue_ & flagValue) == flagValue);
         cb->setChecked(checked);
     }
 }

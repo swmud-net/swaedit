@@ -8,7 +8,7 @@
 
 struct FlagDef {
     QString name;
-    int value = 0;
+    qint64 value = 0;
 };
 
 // --- Exits (exits.xml) ---
