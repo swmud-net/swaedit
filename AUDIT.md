@@ -1,10 +1,28 @@
 # SWAEdit Java-to-C++ Port Audit Report
 
-> 112 Java files audited. 4 audit rounds, 55+ gaps found and fixed.
+> 112 Java files audited. 5 audit rounds, 58+ gaps found and fixed.
+
+## Audit Round 5 Summary
+
+Full 6-agent parallel comparison across all subsystems (MainWindow ×3, MapWidget, Model classes, XmlIO+Dialogs). Found and fixed 3 parity gaps:
+
+### MEDIUM
+1. **prepareLabelName() index 0** — C++ returned "Arg0:" for index 0; Java returns "Extra:" via switch. Fixed to match.
+2. **Map window title on refresh** — Title set on initial creation but not updated when map refreshed. Fixed.
+
+### LOW
+3. **Delete repair status message** — C++ said "Repair shop deleted."; Java says "Repair deleted." Fixed.
+
+### Confirmed NOT gaps
+- All color constants, alpha values, FPS, camera formulas, exit transforms — identical
+- Type widening (Java `short`/`BigInteger` → C++ `int`/`qint64`) — intentional
+- `SingleFlagWidget` — dead code in Java, never instantiated
+- `MessagesWidget` — tied to dropped FileServer feature
+- `GL_TEXTURE_2D` enable — vestigial in Java, not used
 
 ## Audit Round 4 Summary
 
-Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumberer, Map, Dialogs). Found and fixed 22 parity gaps:
+Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumberer, Map, Dialogs). Found and fixed 22 parity gaps (1 CRITICAL, 12 HIGH, 9 MEDIUM):
 
 ### CRITICAL
 1. **ISO-8859-2 save encoding bug** — XML declaration said ISO-8859-2 but bytes were UTF-8. Fixed: write to buffer, then encode via QStringEncoder to ISO-8859-2.
@@ -60,11 +78,10 @@ Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumbe
 ### `core/JAXBOperations.java`
 **Functionality:** Central XML I/O — unmarshall/marshall for Area, Flags, Exits, ItemTypes, Names, Types, Resets, Highlighter, StringTypes, Lastupdate, USProtocol, Messages. XSD validation. ISO-8859-2 encoding filter.
 **C++ implementation:** `src/core/XmlIO.h` + `src/core/XmlIO.cpp`
-**Status:** PARTIAL
+**Status:** COMPLETE
 **Details:**
-- Implemented: loadArea, saveArea, loadFlags, loadExits, loadItemTypes, loadNames, loadTypes, loadResetsInfo, loadHighlighter, loadAllConfig
+- Implemented: loadArea, saveArea, validateXml (libxml2 XSD), loadFlags, loadExits, loadItemTypes, loadNames, loadTypes, loadResetsInfo, loadHighlighter, loadAllConfig
 - XML output encoding: ISO-8859-2 (matching Java)
-- Missing: XSD schema validation (QXmlStreamReader doesn't support XSD natively — deliberate simplification)
 - Missing: `unmarshallLastUpdate`, `marshallLastUpdate`, `unmarshallUSProtocol`, `unmarshallMessages`, `marshallMessages` — all dropped with FileServer
 
 ### `core/Renumberer.java`
@@ -291,14 +308,10 @@ Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumbe
 | | Count |
 |---|---|
 | **Total Java files** | **112** |
-| **Fully implemented** | **74** |
-| **Partially implemented** | **1** (JAXBOperations — missing XSD validation only) |
+| **Fully implemented** | **75** |
+| **Partially implemented** | **0** |
 | **Intentionally dropped** | **37** |
 | **Missing** | **0** |
-
-### Known remaining difference
-
-XSD schema validation on XML load is not implemented. QXmlStreamReader does not support XSD validation natively. Well-formed area files load and save correctly; malformed XML is not rejected at parse time.
 
 ### Audit history
 
@@ -306,4 +319,6 @@ XSD schema validation on XML load is not implemented. QXmlStreamReader does not 
 - **Round 2:** 9 gaps found (2 HIGH, 7 MEDIUM) — all fixed
 - **Round 2b:** 3 additional gaps (warning messages, set-then-warn pattern) — all fixed
 - **Round 3:** 11 gaps found (2 HIGH, 3 MEDIUM, 6 LOW) — all fixed
-- **Total gaps found and fixed:** 33
+- **Round 4:** 22 gaps found (1 CRITICAL, 12 HIGH, 9 MEDIUM) — all fixed
+- **Round 5:** 3 gaps found (2 MEDIUM, 1 LOW) — all fixed
+- **Total gaps found and fixed:** 58

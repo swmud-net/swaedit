@@ -3119,8 +3119,15 @@ void MainWindow::setupResetLabels(const AreaReset &reset)
 
 QString MainWindow::prepareLabelName(const QString &argName, int idx)
 {
-    if (argName.isEmpty())
-        return "Arg" + QString::number(idx) + ":";
+    if (argName.isEmpty()) {
+        switch (idx) {
+        case 1:  return QStringLiteral("Arg1:");
+        case 2:  return QStringLiteral("Arg2:");
+        case 3:  return QStringLiteral("Arg3:");
+        case 4:  return QStringLiteral("Arg4:");
+        default: return QStringLiteral("Extra:");
+        }
+    }
     return argName + ":";
 }
 
@@ -3825,7 +3832,7 @@ void MainWindow::onRepairDeleteButtonClicked()
         clearRepairData();
 
     setModified();
-    statusBar()->showMessage("Repair shop deleted.");
+    statusBar()->showMessage("Repair deleted.");
 }
 
 // ===========================================================================
@@ -4165,6 +4172,7 @@ void MainWindow::onActionShowMap()
         // Refresh existing map
         Mapper mapper(&area_);
         mapper.makeMap(mapWidget_);
+        mapWidget_->setWindowTitle(area_.head.name);
         mapWidget_->raise();
         mapWidget_->activateWindow();
         return;
