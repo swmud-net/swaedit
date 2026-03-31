@@ -1,0 +1,38 @@
+# Build
+build/
+cmake-build-*/
+CMakeUserPresets.json
+
+# Compiled objects
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Qt generated
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.qrc.depends
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+**/*.log
+
+# Packages
+*.dmg
+*.exe
+*.msi
+*.deb
+*.rpm
+*.AppImage

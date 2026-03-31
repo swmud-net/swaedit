@@ -75,6 +75,15 @@ set(HEADERS
 
 qt_add_executable(swaedit ${SOURCES} ${HEADERS})
 
+# Remove stale log files from the source tree at the start of every build
+add_custom_target(clean_logs
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+        ${CMAKE_SOURCE_DIR}/swaedit_out.log
+        ${CMAKE_SOURCE_DIR}/swaedit_err.log
+    COMMENT "Cleaning log files"
+)
+add_dependencies(swaedit clean_logs)
+
 target_include_directories(swaedit PRIVATE src ${LIBXML2_INCLUDE_DIR})
 
 target_compile_definitions(swaedit PRIVATE GL_SILENCE_DEPRECATION)
