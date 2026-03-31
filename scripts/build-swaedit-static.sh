@@ -11,9 +11,12 @@ JOBS="$(nproc)"
 
 echo "Building swaedit (static) against ${PREFIX}/qt6..."
 
+export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+
 cmake -B "$BUILD_DIR" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="${PREFIX}/qt6" \
+    -DCMAKE_PREFIX_PATH="${PREFIX}/qt6;${PREFIX}" \
+    -DCMAKE_FIND_LIBRARY_SUFFIXES=".a;.so" \
     -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
 
 cmake --build "$BUILD_DIR" -j"$JOBS"
