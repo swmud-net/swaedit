@@ -74,10 +74,10 @@ echo "Configuring Qt (static, xcb, desktop OpenGL)..."
     -DFEATURE_dbus=OFF
 
 echo "Building Qt (this takes 20-40 minutes)..."
-cmake --build build -j"$JOBS"
+cmake --build . -j"$JOBS"
 
 echo "Installing Qt to ${PREFIX}/qt6..."
-cmake --install build
+cmake --install .
 
 echo "Qt build complete."
 
