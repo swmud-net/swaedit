@@ -144,12 +144,12 @@ cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
 cmake --build build -j"$JOBS" && cmake --install build
 
 step "fontconfig ${FONTCONFIG_VER} (no glib)"
-d=$(fetch "https://www.freedesktop.org/software/fontconfig/release/fontconfig-${FONTCONFIG_VER}.tar.xz")
-cd "$d"
-./configure --prefix="$PREFIX" --enable-static --disable-shared \
-    --disable-docs --sysconfdir=/etc \
-    PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-make -j"$JOBS" && make install
+d=$(fetch "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/${FONTCONFIG_VER}/fontconfig-${FONTCONFIG_VER}.tar.gz")
+cd "$d" && rm -rf builddir
+meson setup builddir --prefix="$PREFIX" --default-library=static \
+    -Ddoc=disabled -Dtests=disabled -Dcache-build=disabled \
+    -Dtools=disabled
+ninja -C builddir -j"$JOBS" && ninja -C builddir install
 
 # ===================================================================
 # Qt 6.8.x — static build
