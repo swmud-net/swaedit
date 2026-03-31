@@ -152,6 +152,7 @@ private:
     bool drawDistantExits_ = false;
     bool drawCross_ = false;
     bool showHelp_ = false;
+    bool showExtendedHelp_ = false;
     int showIslandsLayers_ = 0;
     qint64 roomMarkingFlag_ = 0;
 

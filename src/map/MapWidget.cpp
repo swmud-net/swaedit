@@ -53,7 +53,8 @@ const QStringList MapWidget::MENU_KEYS = {
     "F11    - take a transparent screenshot",
     "lMouse - drag to move, click to select room/exit",
     "rMouse - drag to change rotation angle",
-    "shift  - hold to switch Y to Z axis"
+    "shift  - hold to switch Y to Z axis",
+    "H      - show extended help"
 };
 
 // ===================================================================
@@ -892,6 +893,27 @@ void MapWidget::drawTextOverlay()
             painter.drawText(10, y, key);
             y += lineHeight;
         }
+
+        if (showExtendedHelp_) {
+            y += lineHeight;
+            painter.drawText(10, y, QStringLiteral(
+                "Island: a group of rooms connected by exits."));
+            y += lineHeight;
+            painter.drawText(10, y, QStringLiteral(
+                "Rooms not connected to others form separate islands."));
+            y += lineHeight * 2;
+            painter.drawText(10, y, QStringLiteral(
+                "Layer: when two rooms end up in the same spot on the"));
+            y += lineHeight;
+            painter.drawText(10, y, QStringLiteral(
+                "map, the overlapping room is moved to a separate layer."));
+            y += lineHeight;
+            painter.drawText(10, y, QStringLiteral(
+                "Layer 1 is the main view; higher layers hold rooms"));
+            y += lineHeight;
+            painter.drawText(10, y, QStringLiteral(
+                "that could not fit without overlapping."));
+        }
     }
 
     painter.end();
@@ -1108,7 +1130,14 @@ void MapWidget::keyPressEvent(QKeyEvent *e)
         center();
         e->accept();
     } else if (kc == Qt::Key_H) {
-        showHelp_ = !showHelp_;
+        if (e->modifiers() & Qt::ShiftModifier) {
+            if (showHelp_)
+                showExtendedHelp_ = !showExtendedHelp_;
+        } else {
+            showHelp_ = !showHelp_;
+            if (!showHelp_)
+                showExtendedHelp_ = false;
+        }
         e->accept();
     } else if (kc == Qt::Key_F) {
         if (isFullScreen()) {
