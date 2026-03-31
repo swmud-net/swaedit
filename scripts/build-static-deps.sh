@@ -118,7 +118,7 @@ meson setup builddir \
     --prefix="$PREFIX/mesa" \
     -Dgallium-drivers=swrast \
     -Dvulkan-drivers= \
-    -Dglx=gallium-xlib \
+    -Dglx=xlib \
     -Degl=disabled \
     -Dgbm=disabled \
     -Dllvm=disabled \
