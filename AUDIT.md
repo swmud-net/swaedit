@@ -1,6 +1,23 @@
 # SWAEdit Java-to-C++ Port Audit Report
 
-> 112 Java files audited. 5 audit rounds, 58+ gaps found and fixed.
+> 112 Java files audited. 6 audit rounds, 74+ gaps found and fixed.
+
+## Audit Round 6 Summary
+
+Full 6-agent parallel comparison: signals/slots completeness, config data loading, XmlIO field-by-field save/load, Mapper algorithm, all dialog widgets, all user-visible strings. Found and fixed 16 parity gaps:
+
+### MEDIUM
+1. **Validation dialog titles** — 15 number-validation error dialogs used generic "Error" title; Java uses "Invalid Number Value". All 15 fixed.
+2. **Create repair status message** — C++ said "New repair shop created."; Java says "New repair created." Fixed.
+
+### Confirmed NOT gaps
+- All signal/slot connections present and functional
+- XmlIO save/load: every field verified bidirectionally — complete
+- Mapper algorithm: DFS graph walk, coordinate mapping, collision detection, reverse exits — all identical
+- Config data loading: all 24 XML config files loaded with correct parsing
+- Type differences (Short/BigInteger → int/qint64) — intentional, values fit within range
+- StringTypes: never loaded in Java either (dead code)
+- Dialog widget architectural differences (constructor signatures, signal types) — equivalent behavior
 
 ## Audit Round 5 Summary
 
@@ -321,4 +338,5 @@ Deep line-by-line comparison across all 5 subsystems (MainWindow, XmlIO, Renumbe
 - **Round 3:** 11 gaps found (2 HIGH, 3 MEDIUM, 6 LOW) — all fixed
 - **Round 4:** 22 gaps found (1 CRITICAL, 12 HIGH, 9 MEDIUM) — all fixed
 - **Round 5:** 3 gaps found (2 MEDIUM, 1 LOW) — all fixed
-- **Total gaps found and fixed:** 58
+- **Round 6:** 16 gaps found (16 MEDIUM) — all fixed
+- **Total gaps found and fixed:** 74

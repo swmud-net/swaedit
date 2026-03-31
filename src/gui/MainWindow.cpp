@@ -763,7 +763,7 @@ void MainWindow::onLvnumEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Lower Vnum must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Lower Vnum must have number value!");
         ui->lvnumEdit->setText(QString::number(area_.head.vnums.lvnum));
         return;
     }
@@ -777,7 +777,7 @@ void MainWindow::onUvnumEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Upper Vnum must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Upper Vnum must have number value!");
         ui->uvnumEdit->setText(QString::number(area_.head.vnums.uvnum));
         return;
     }
@@ -791,7 +791,7 @@ void MainWindow::onFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Area Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Area Flags must have number value!");
         ui->flagsEdit->setText(QString::number(area_.head.flags));
         return;
     }
@@ -819,7 +819,7 @@ void MainWindow::onLeconomyEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Low Economy must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Low Economy must have number value!");
         ui->leconomyEdit->setText(QString::number(area_.head.economy.low));
         return;
     }
@@ -833,7 +833,7 @@ void MainWindow::onHeconomyEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "High Economy must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "High Economy must have number value!");
         ui->heconomyEdit->setText(QString::number(area_.head.economy.high));
         return;
     }
@@ -847,7 +847,7 @@ void MainWindow::onResetFreqEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Reset Frequency must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Reset Frequency must have number value!");
         ui->resetFreqEdit->setText(QString::number(area_.head.reset.frequency));
         return;
     }
@@ -1216,7 +1216,7 @@ void MainWindow::onItemExtraFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Item Extra Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Item Extra Flags must have number value!");
         ui->itemExtraFlagsEdit->setText(QString::number(obj->extraflags));
         return;
     }
@@ -1250,7 +1250,7 @@ void MainWindow::onItemWearFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Item Wear Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Item Wear Flags must have number value!");
         ui->itemWearFlagsEdit->setText(QString::number(obj->wearflags));
         return;
     }
@@ -1338,7 +1338,7 @@ void MainWindow::onItemWeightEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Item Weight must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Item Weight must have number value!");
         ui->itemWeightEdit->setText(QString::number(obj->weight));
         return;
     }
@@ -1354,7 +1354,7 @@ void MainWindow::onItemCostEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Item Cost must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Item Cost must have number value!");
         ui->itemCostEdit->setText(QString::number(obj->cost));
         return;
     }
@@ -1379,7 +1379,7 @@ void MainWindow::onItemLayersEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Item Layers must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Item Layers must have number value!");
         ui->itemLayersEdit->setText(QString::number(obj->layers));
         return;
     }
@@ -1971,7 +1971,7 @@ void MainWindow::onMobCreditsEditTextChanged(const QString &str)
     bool ok;
     int val = str.toInt(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Credits must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Credits must have number value!");
         ui->mobCreditsEdit->setText(QString::number(mob->credits));
         return;
     }
@@ -2562,7 +2562,7 @@ void MainWindow::onRoomFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Room Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Room Flags must have number value!");
         ui->roomFlagsEdit->setText(QString::number(room->flags));
         return;
     }
@@ -2761,7 +2761,7 @@ void MainWindow::onRoomExitFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Exit Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Exit Flags must have number value!");
         ui->roomExitFlagsEdit->setText(QString::number(exit->flags));
         return;
     }
@@ -3510,7 +3510,7 @@ void MainWindow::onShopFlagsEditTextChanged(const QString &str)
     bool ok;
     qint64 val = str.toLongLong(&ok);
     if (!ok) {
-        QMessageBox::critical(this, "Error", "Shop Flags must have number value!");
+        QMessageBox::critical(this, "Invalid Number Value", "Shop Flags must have number value!");
         ui->shopFlagsEdit->setText(QString::number(shop->flags));
         return;
     }
@@ -4269,7 +4269,7 @@ void MainWindow::repairVnumChosen(int vnum)
     area_.repairs.append(repair);
     fillRepairData(area_.repairs.size() - 1);
     setModified();
-    statusBar()->showMessage("New repair shop created.");
+    statusBar()->showMessage("New repair created.");
 }
 
 void MainWindow::mapClosed()
