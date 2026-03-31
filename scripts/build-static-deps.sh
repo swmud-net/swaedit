@@ -19,7 +19,7 @@ SRC="/tmp/static-deps-build"
 JOBS="$(nproc)"
 
 # --- Versions ---
-ZLIB_VER=1.3.1
+ZLIB_VER=1.3.2
 BZIP2_VER=1.0.8
 EXPAT_VER=2.6.2
 PCRE2_VER=10.43
