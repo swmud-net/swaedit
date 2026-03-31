@@ -43,7 +43,7 @@ fetch() {
     local url="$1" file dir
     file="$(basename "$url")"
     if [ ! -f "$SRC/$file" ]; then
-        echo "Downloading $file ..."
+        echo "Downloading $file ..." >&2
         wget --tries=3 --timeout=30 -nv -P "$SRC" "$url"
     fi
     dir="$(tar tf "$SRC/$file" | head -1 | cut -d/ -f1)"
