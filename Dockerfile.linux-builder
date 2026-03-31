@@ -24,6 +24,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Ubuntu 24.04 ships meson 1.3.2; fontconfig 2.17.1 requires >= 1.6.1
+RUN pip3 install --break-system-packages meson --upgrade
+
 # Build Qt (static) and Mesa (softpipe fallback)
 COPY scripts/build-static-deps.sh /tmp/build-static-deps.sh
 RUN chmod +x /tmp/build-static-deps.sh \
