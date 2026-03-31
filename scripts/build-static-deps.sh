@@ -74,6 +74,16 @@ cd "$d" && make clean 2>/dev/null || true
 make -j"$JOBS" CC=gcc "CFLAGS=-fPIC -O2" libbz2.a
 install -Dm644 libbz2.a "$PREFIX/lib/libbz2.a"
 install -Dm644 bzlib.h "$PREFIX/include/bzlib.h"
+# Create cmake config so freetype can find BZip2::BZip2
+mkdir -p "$PREFIX/lib/cmake/BZip2"
+cat > "$PREFIX/lib/cmake/BZip2/BZip2Config.cmake" << 'BZCFG'
+add_library(BZip2::BZip2 STATIC IMPORTED)
+set_target_properties(BZip2::BZip2 PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/../../libbz2.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/../../../include"
+)
+set(BZIP2_FOUND TRUE)
+BZCFG
 
 step "expat ${EXPAT_VER}"
 EXPAT_TAG="R_$(echo "$EXPAT_VER" | tr '.' '_')"
