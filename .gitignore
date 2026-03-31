@@ -36,3 +36,8 @@ qrc_*.cpp
 *.deb
 *.rpm
 *.AppImage
+*.7z
+
+# Static build
+build-static/
+package/

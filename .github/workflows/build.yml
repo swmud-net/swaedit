@@ -33,6 +33,91 @@ jobs:
         run: cmake --build build --config Release -j$(nproc)
 
   # ---------------------------------------------------------------
+  # Linux portable — maximally static binary, packaged as .7z
+  # Only glibc + libGL.so are dynamic. Bundled Mesa fallback for
+  # systems without OpenGL.
+  # ---------------------------------------------------------------
+  build-linux-portable:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dev packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config meson \
+            python3 python3-mako python3-ply python3-yaml \
+            p7zip-full \
+            zlib1g-dev libpng-dev libbz2-dev \
+            libexpat1-dev libpcre2-dev \
+            libfreetype-dev libfontconfig-dev libharfbuzz-dev \
+            libxcb1-dev libxcb-glx0-dev libxcb-icccm4-dev \
+            libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev \
+            libxcb-render-util0-dev libxcb-render0-dev libxcb-shape0-dev \
+            libxcb-shm0-dev libxcb-sync-dev libxcb-xfixes0-dev \
+            libxcb-xinerama0-dev libxcb-xinput-dev libxcb-xkb-dev \
+            libxcb-cursor-dev \
+            libx11-dev libx11-xcb-dev libxext-dev libxshmfence-dev \
+            libxrender-dev libxi-dev libxrandr-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev \
+            libgl-dev libglu1-mesa-dev libdrm-dev \
+            libxml2-dev
+
+      - name: Cache static dependencies (Qt + Mesa)
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: /opt/static-deps
+          key: static-deps-v1
+
+      - name: Build static dependencies (Qt + Mesa)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./scripts/build-static-deps.sh
+
+      - name: Build swaedit (static)
+        run: ./scripts/build-swaedit-static.sh
+
+      - name: Verify minimal dynamic deps
+        run: |
+          echo "=== file ==="
+          file build-static/swaedit
+          echo "=== ldd ==="
+          ldd build-static/swaedit
+          echo "=== checking for unexpected deps ==="
+          UNEXPECTED=$(ldd build-static/swaedit \
+            | grep '=>' \
+            | grep -v -E '(libGL|libGLX|libGLdispatch|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so|libX|libxcb|libxkb|libfontconfig|libfreetype|libharfbuzz)' \
+            || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "WARNING: unexpected dynamic deps found:"
+            echo "$UNEXPECTED"
+          fi
+
+      - name: Package .7z
+        run: |
+          mkdir -p package/swaedit/{lib,fonts}
+          cp build-static/swaedit package/swaedit/
+          cp -r data schemas images package/swaedit/
+          cp swaedit.sh package/swaedit/
+          chmod +x package/swaedit/swaedit.sh
+          cp fonts/DejaVuSans.ttf fonts/DejaVuSans-Bold.ttf package/swaedit/fonts/
+          cp fonts.conf package/swaedit/
+          # Bundle Mesa fallback libGL.so if built
+          if [ -d /opt/static-deps/mesa/lib ]; then
+            cp -P /opt/static-deps/mesa/lib/libGL.so* package/swaedit/lib/ 2>/dev/null || true
+            cp -P /opt/static-deps/mesa/lib/libglapi.so* package/swaedit/lib/ 2>/dev/null || true
+          fi
+          cd package && 7z a -mx=9 ../SWAEdit-linux-x86_64.7z swaedit/
+
+      - name: Upload Linux artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: swaedit-linux
+          path: SWAEdit-linux-x86_64.7z
+
+  # ---------------------------------------------------------------
   # macOS — build + package .dmg
   # ---------------------------------------------------------------
   build-macos:
@@ -229,13 +314,19 @@ jobs:
   # Release — publish artifacts when a tag is pushed
   # ---------------------------------------------------------------
   release:
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-linux, build-linux-portable, build-macos, build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: swaedit-linux
+          path: release/
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
@@ -253,6 +344,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            release/SWAEdit-linux-x86_64.7z
             release/SWAEdit-macos.dmg
             release/SWAEdit-setup-x64.exe
           generate_release_notes: true
