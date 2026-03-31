@@ -44,7 +44,8 @@ fetch() {
     file="$(basename "$url")"
     if [ ! -f "$SRC/$file" ]; then
         echo "Downloading $file ..." >&2
-        wget --tries=3 --timeout=30 -nv -P "$SRC" "$url"
+        wget --tries=3 --timeout=30 -nv -P "$SRC" "$url" \
+            || { echo "FATAL: download failed: $url" >&2; exit 1; }
     fi
     dir="$(tar tf "$SRC/$file" | head -1 | cut -d/ -f1)"
     if [ ! -d "$SRC/$dir" ]; then
@@ -120,7 +121,7 @@ cmake --build build -j"$JOBS" && cmake --install build
 # ===================================================================
 
 step "freetype ${FREETYPE_VER} (pass 1: no harfbuzz, no brotli)"
-d=$(fetch "https://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VER}.tar.xz")
+d=$(fetch "https://download.sourceforge.net/freetype/freetype-${FREETYPE_VER}.tar.xz")
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
