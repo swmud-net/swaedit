@@ -143,6 +143,18 @@ jobs:
           </plist>
           PLIST
 
+      - name: Generate .icns from icon.png
+        run: |
+          mkdir -p build/icon.iconset
+          for sz in 16 32 64 128 256 512; do
+            sips -z $sz $sz images/icon.png --out build/icon.iconset/icon_${sz}x${sz}.png
+          done
+          for sz in 32 64 256 512; do
+            half=$((sz / 2))
+            cp build/icon.iconset/icon_${sz}x${sz}.png build/icon.iconset/icon_${half}x${half}@2x.png
+          done
+          iconutil -c icns build/icon.iconset -o build/SWAEdit.app/Contents/Resources/icon.icns
+
       - name: Run macdeployqt
         run: |
           $(brew --prefix qt@6)/bin/macdeployqt build/SWAEdit.app
