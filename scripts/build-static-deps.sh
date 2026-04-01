@@ -225,8 +225,14 @@ cmake --install .
 # so the final link uses static archives for X11/xcb/xkb system libs.
 # Only libGL* and glibc libs (libc, libm, libdl, libpthread) stay dynamic.
 echo "Patching Qt cmake configs for static linking..."
+
+# Show what we're working with
+echo "--- .so references in Qt cmake configs before patching ---"
+grep -rh '\.so' "$PREFIX/qt6/lib/cmake/" | grep -o '/usr/lib/[^ ";)]*\.so[^ ";)]*' | sort -u || true
+
+# Replace .so (with or without version suffix) with .a
 find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
-    's|\(/usr/lib/x86_64-linux-gnu/lib[a-zA-Z0-9_+-]*\)\.so|\1.a|g' \
+    's|\(/usr/lib/x86_64-linux-gnu/lib[a-zA-Z0-9_+-]*\)\.so[.0-9]*|\1.a|g' \
     {} +
 # Restore libs that MUST remain dynamic (GL, glibc)
 find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
@@ -234,6 +240,9 @@ find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
     -e 's|\(/usr/lib/x86_64-linux-gnu/libOpenGL\)\.a|\1.so|g' \
     -e 's|\(/usr/lib/x86_64-linux-gnu/libGLdispatch\)\.a|\1.so|g' \
     {} +
+
+echo "--- .so references AFTER patching (should only be GL/glibc) ---"
+grep -rh '\.so' "$PREFIX/qt6/lib/cmake/" | grep -o '/usr/lib/[^ ";)]*\.so[^ ";)]*' | sort -u || true
 echo "Qt build complete."
 
 # ===================================================================
