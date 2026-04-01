@@ -279,8 +279,9 @@ meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
     -Denable-docs=false -Denable-tools=false
 # Test targets fail to link (missing transitive xcb deps in test link line).
 # The libraries themselves build fine, so keep going past test failures.
+# Use 'meson install --no-rebuild' to skip re-building (which would fail on tests).
 ninja -C builddir -j"$JOBS" -k 0 || true
-ninja -C builddir install
+meson install -C builddir --no-rebuild
 ls "$PREFIX/lib"/libxkbcommon*.a "$PREFIX/lib/pkgconfig"/xkbcommon*.pc 2>/dev/null || echo "WARN: xkbcommon libs/pc missing!"
 
 # ===================================================================
