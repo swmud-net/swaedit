@@ -220,6 +220,20 @@ cmake --build . -j"$JOBS"
 
 echo "Installing Qt to ${PREFIX}/qt6..."
 cmake --install .
+
+# Post-process Qt's cmake config: replace .so references with .a
+# so the final link uses static archives for X11/xcb/xkb system libs.
+# Only libGL* and glibc libs (libc, libm, libdl, libpthread) stay dynamic.
+echo "Patching Qt cmake configs for static linking..."
+find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
+    's|\(/usr/lib/x86_64-linux-gnu/lib[a-zA-Z0-9_+-]*\)\.so|\1.a|g' \
+    {} +
+# Restore libs that MUST remain dynamic (GL, glibc)
+find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
+    -e 's|\(/usr/lib/x86_64-linux-gnu/libGL[a-zA-Z]*\)\.a|\1.so|g' \
+    -e 's|\(/usr/lib/x86_64-linux-gnu/libOpenGL\)\.a|\1.so|g' \
+    -e 's|\(/usr/lib/x86_64-linux-gnu/libGLdispatch\)\.a|\1.so|g' \
+    {} +
 echo "Qt build complete."
 
 # ===================================================================
