@@ -315,9 +315,8 @@ meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
     -Dtools=disabled
 ninja -C builddir -j"$JOBS" && ninja -C builddir install
 
-# Restore pkg-config to include system paths (Qt needs system OpenGL)
-unset PKG_CONFIG_LIBDIR
-export PKG_CONFIG_PATH="$_SAVE_PKG_CONFIG_PATH"
+# NOTE: PKG_CONFIG_LIBDIR stays restricted to our prefix — restored after Qt.
+# Qt needs system OpenGL, which we pass explicitly via cmake variables.
 
 # Promote private deps to public in all .pc files.
 # Static linking needs ALL transitive deps (e.g., xcb → xau, xdmcp).
@@ -352,10 +351,19 @@ exec /usr/bin/pkg-config --static "$@"
 WRAPPER
 chmod +x "$PREFIX/bin/pkg-config-static"
 
-# Debug: verify key packages resolve correctly
-echo "=== pkg-config --static check ==="
+# Debug: verify key packages resolve correctly via PKG_CONFIG_LIBDIR
+echo "=== PKG_CONFIG_LIBDIR=${PKG_CONFIG_LIBDIR:-<unset>} ==="
+echo "=== PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-<unset>} ==="
+echo "=== pkg-config-static --libs xcb ==="
 "$PREFIX/bin/pkg-config-static" --libs xcb 2>&1 || echo "WARN: xcb not found"
+echo "=== pkg-config-static --libs xkbcommon-x11 ==="
 "$PREFIX/bin/pkg-config-static" --libs xkbcommon-x11 2>&1 || echo "WARN: xkbcommon-x11 not found"
+echo "=== pkg-config-static --libs x11 ==="
+"$PREFIX/bin/pkg-config-static" --libs x11 2>&1 || echo "WARN: x11 not found"
+echo "=== pkg-config-static --libs fontconfig ==="
+"$PREFIX/bin/pkg-config-static" --libs fontconfig 2>&1 || echo "WARN: fontconfig not found"
+echo "=== All .pc files in prefix ==="
+find "$PREFIX/lib/pkgconfig" "$PREFIX/share/pkgconfig" -name "*.pc" -exec basename {} \; | sort
 echo "=== static .a count: $(find "$PREFIX/lib" -name '*.a' | wc -l) ==="
 
 step "Qt ${QT_VER} (static)"
@@ -393,6 +401,10 @@ echo "Configuring Qt..."
     -DCMAKE_C_FLAGS="-fPIC" \
     -DCMAKE_CXX_FLAGS="-fPIC" \
     -DPKG_CONFIG_EXECUTABLE="$PREFIX/bin/pkg-config-static" \
+    -DOPENGL_opengl_LIBRARY="/usr/lib/x86_64-linux-gnu/libOpenGL.so" \
+    -DOPENGL_glx_LIBRARY="/usr/lib/x86_64-linux-gnu/libGLX.so" \
+    -DOPENGL_gl_LIBRARY="/usr/lib/x86_64-linux-gnu/libGL.so" \
+    -DOPENGL_INCLUDE_DIR="/usr/include" \
     -DFEATURE_eglfs=OFF \
     -DFEATURE_cups=OFF \
     -DFEATURE_dbus=OFF \
@@ -428,6 +440,10 @@ find "$PREFIX/qt6" -name "*.cmake" -exec sed -i \
 echo "--- .so references AFTER patching (should only be GL/glibc) ---"
 grep -rh '\.so' "$PREFIX/qt6/lib/cmake/" | grep -o '/usr/lib/[^ ";)]*\.so[^ ";)]*' | sort -u || true
 echo "Qt build complete."
+
+# Restore pkg-config to include system paths (Mesa needs system GL headers)
+unset PKG_CONFIG_LIBDIR
+export PKG_CONFIG_PATH="$_SAVE_PKG_CONFIG_PATH"
 
 # ===================================================================
 # Mesa — softpipe software renderer (bundled libGL.so fallback)
