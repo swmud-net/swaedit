@@ -67,7 +67,7 @@ jobs:
 
       - name: Package .7z
         run: |
-          mkdir -p package/swaedit/{lib,fonts}
+          mkdir -p package/swaedit/lib package/swaedit/fonts
           cp build-static/swaedit package/swaedit/
           cp -r data schemas images package/swaedit/
           cp swaedit.sh package/swaedit/
