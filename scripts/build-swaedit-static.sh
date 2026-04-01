@@ -19,10 +19,16 @@ export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig:/usr/l
 # fontconfig→freetype BDF) are found regardless of link order.
 LINK_RULE="<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> -Wl,--start-group <LINK_LIBRARIES> -L${PREFIX}/lib -lfontconfig -lfreetype -lharfbuzz -lexpat -lpng16 -lz -lbz2 -lpcre2-8 -lpcre2-16 -Wl,--end-group"
 
+# Use .a ONLY — forces cmake's find_dependency() to resolve X11/xcb/xkb
+# as static archives. OpenGL must be set explicitly since libGL.a doesn't exist.
+SYSLIB="/usr/lib/x86_64-linux-gnu"
+
 cmake -B "$BUILD_DIR" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${PREFIX}/qt6;${PREFIX}" \
-    -DCMAKE_FIND_LIBRARY_SUFFIXES=".a;.so" \
+    -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+    -DOPENGL_opengl_LIBRARY="${SYSLIB}/libOpenGL.so" \
+    -DOPENGL_glx_LIBRARY="${SYSLIB}/libGLX.so" \
     -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
     -DCMAKE_CXX_LINK_EXECUTABLE="$LINK_RULE"
 
