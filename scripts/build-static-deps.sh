@@ -3,14 +3,12 @@
 # Build ALL dependencies as static libraries, then build Qt (static)
 # and Mesa (softpipe fallback shared lib).
 #
-# Key libraries are built from source to avoid transitive dep bloat:
+# ALL non-GL dependencies are built from source as static .a archives:
+#   - X11/XCB stack (libxcb, libX11, xkbcommon, …) — eliminates dynamic X11
 #   - libxml2 without ICU/LZMA  (eliminates libicu, liblzma)
 #   - freetype without brotli   (eliminates libbrotli)
 #   - harfbuzz without glib/ICU/graphite2  (eliminates libglib, libgraphite2)
 #   - fontconfig without glib   (eliminates libglib)
-#
-# System -dev packages provide .a files for X11/xcb stack.
-# CMAKE_FIND_LIBRARY_SUFFIXES=".a;.so" ensures static linking throughout.
 #
 set -euo pipefail
 
@@ -31,6 +29,24 @@ FONTCONFIG_VER=2.17.1
 QT_VER="${QT_VERSION:-6.8.1}"
 QT_MAJOR_MINOR="$(echo "$QT_VER" | cut -d. -f1-2)"
 MESA_VER="${MESA_VERSION:-23.3.6}"
+
+# --- X11/XCB versions (built from source for static linking) ---
+UTIL_MACROS_VER=1.20.1
+XORGPROTO_VER=2024.1
+XCB_PROTO_VER=1.17.0
+XTRANS_VER=1.5.0
+LIBXAU_VER=1.0.11
+LIBXDMCP_VER=1.1.5
+LIBXCB_VER=1.17.0
+XCB_UTIL_VER=0.4.1
+XCB_UTIL_WM_VER=0.4.2
+XCB_UTIL_IMAGE_VER=0.4.1
+XCB_UTIL_KEYSYMS_VER=0.4.1
+XCB_UTIL_RENDERUTIL_VER=0.3.10
+XCB_UTIL_CURSOR_VER=0.1.5
+LIBX11_VER=1.8.10
+LIBXEXT_VER=1.3.6
+XKBCOMMON_VER=1.7.0
 
 mkdir -p "$PREFIX"/{lib/pkgconfig,include,share/pkgconfig} "$SRC"
 
@@ -128,6 +144,133 @@ cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" \
 cmake --build build -j"$JOBS" && cmake --install build
 
 # ===================================================================
+# Tier 2.5 — X11/XCB stack (built from source for static linking)
+# ===================================================================
+# Building from source guarantees .a-only archives in our prefix.
+# System -dev packages provide .so which leak into the final binary.
+#
+# Restrict pkg-config to our prefix only — prevents finding system
+# libbsd (transitive dep of system libXdmcp-dev).
+_SAVE_PKG_CONFIG_PATH="${PKG_CONFIG_PATH:-}"
+export PKG_CONFIG_PATH=""
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
+export ACLOCAL_PATH="$PREFIX/share/aclocal"
+
+# --- Protocol definitions & build macros ---
+
+step "util-macros ${UTIL_MACROS_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/util/util-macros-${UTIL_MACROS_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX"
+make install
+
+step "xorgproto ${XORGPROTO_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/proto/xorgproto-${XORGPROTO_VER}.tar.xz")
+cd "$d" && rm -rf builddir
+meson setup builddir --prefix="$PREFIX" --libdir=lib -Dlegacy=true
+ninja -C builddir -j"$JOBS" && ninja -C builddir install
+
+step "xcb-proto ${XCB_PROTO_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-${XCB_PROTO_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX"
+make install
+
+step "xtrans ${XTRANS_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xtrans-${XTRANS_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX"
+make install
+
+# --- Authentication libraries ---
+
+step "libXau ${LIBXAU_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/libXau-${LIBXAU_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "libXdmcp ${LIBXDMCP_VER} (no libbsd)"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/libXdmcp-${LIBXDMCP_VER}.tar.xz")
+cd "$d"
+# PKG_CONFIG_LIBDIR restricted to our prefix → libbsd not found → built without it
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+# --- XCB core + extensions ---
+
+step "libxcb ${LIBXCB_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/libxcb-${LIBXCB_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared \
+    --disable-devel-docs --without-doxygen
+make -j"$JOBS" && make install
+
+# --- XCB utility libraries ---
+
+step "xcb-util ${XCB_UTIL_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-${XCB_UTIL_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "xcb-util-wm ${XCB_UTIL_WM_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-wm-${XCB_UTIL_WM_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "xcb-util-image ${XCB_UTIL_IMAGE_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-image-${XCB_UTIL_IMAGE_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "xcb-util-keysyms ${XCB_UTIL_KEYSYMS_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-keysyms-${XCB_UTIL_KEYSYMS_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "xcb-util-renderutil ${XCB_UTIL_RENDERUTIL_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-renderutil-${XCB_UTIL_RENDERUTIL_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+step "xcb-util-cursor ${XCB_UTIL_CURSOR_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/xcb-util-cursor-${XCB_UTIL_CURSOR_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared
+make -j"$JOBS" && make install
+
+# --- X11 client libraries ---
+
+step "libX11 ${LIBX11_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/libX11-${LIBX11_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared \
+    --disable-specs --enable-ipv6 --without-xmlto --without-fop
+make -j"$JOBS" && make install
+
+step "libXext ${LIBXEXT_VER}"
+d=$(fetch "https://xorg.freedesktop.org/archive/individual/lib/libXext-${LIBXEXT_VER}.tar.xz")
+cd "$d"
+./configure --prefix="$PREFIX" --enable-static --disable-shared \
+    --disable-specs
+make -j"$JOBS" && make install
+
+# --- Keyboard handling ---
+
+step "libxkbcommon ${XKBCOMMON_VER}"
+d=$(fetch "https://xkbcommon.org/download/libxkbcommon-${XKBCOMMON_VER}.tar.xz")
+cd "$d" && rm -rf builddir
+meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
+    -Denable-x11=true -Denable-wayland=false \
+    -Denable-docs=false -Denable-tools=false
+ninja -C builddir -j"$JOBS" && ninja -C builddir install
+
+# ===================================================================
 # Tier 3 — font stack (freetype ↔ harfbuzz circular dep)
 # ===================================================================
 
@@ -162,6 +305,10 @@ meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
     -Ddoc=disabled -Dtests=disabled -Dcache-build=disabled \
     -Dtools=disabled
 ninja -C builddir -j"$JOBS" && ninja -C builddir install
+
+# Restore pkg-config to include system paths (Qt needs system OpenGL)
+unset PKG_CONFIG_LIBDIR
+export PKG_CONFIG_PATH="$_SAVE_PKG_CONFIG_PATH"
 
 # ===================================================================
 # Qt 6.8.x — static build

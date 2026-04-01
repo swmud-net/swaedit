@@ -53,16 +53,20 @@ jobs:
         run: |
           echo "=== file ==="
           file build-static/swaedit
-          echo "=== ldd ==="
+          echo "=== ldd (includes transitive deps from libGL) ==="
           ldd build-static/swaedit
-          echo "=== checking for unexpected deps ==="
-          UNEXPECTED=$(ldd build-static/swaedit \
-            | grep '=>' \
-            | grep -v -E '(libGL|libGLX|libGLdispatch|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so|libX|libxcb|libxkb|libfontconfig|libfreetype|libharfbuzz)' \
+          echo "=== Direct dynamic deps (DT_NEEDED) ==="
+          readelf -d build-static/swaedit | grep NEEDED || true
+          echo "=== Verifying only glibc + GL are direct deps ==="
+          UNEXPECTED=$(readelf -d build-static/swaedit \
+            | grep 'Shared library:' \
+            | grep -v -E '\[lib(c|m|dl|pthread|rt|GL|GLX|GLdispatch|OpenGL)\.' \
+            | grep -v 'ld-linux' \
             || true)
           if [ -n "$UNEXPECTED" ]; then
-            echo "WARNING: unexpected dynamic deps found:"
+            echo "ERROR: unexpected direct dynamic deps:"
             echo "$UNEXPECTED"
+            exit 1
           fi
 
       - name: Package .7z

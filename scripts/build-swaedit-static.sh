@@ -17,7 +17,7 @@ export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PREFIX}/share/pkgconfig:/usr/l
 # wrapped in --start-group/--end-group.  This resolves circular deps
 # (freetype↔harfbuzz) and ensures transitive static deps (fontconfig→expat,
 # fontconfig→freetype BDF) are found regardless of link order.
-LINK_RULE="<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> -Wl,--start-group <LINK_LIBRARIES> -L${PREFIX}/lib -lfontconfig -lfreetype -lharfbuzz -lexpat -lpng16 -lz -lbz2 -lpcre2-8 -lpcre2-16 -Wl,--end-group"
+LINK_RULE="<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> -Wl,--export-dynamic -Wl,--start-group <LINK_LIBRARIES> -L${PREFIX}/lib -lfontconfig -lfreetype -lharfbuzz -lexpat -lpng16 -lz -lbz2 -lpcre2-8 -lpcre2-16 -lxkbcommon -lxkbcommon-x11 -lxcb -lxcb-cursor -lxcb-icccm -lxcb-image -lxcb-keysyms -lxcb-randr -lxcb-render -lxcb-render-util -lxcb-shape -lxcb-shm -lxcb-sync -lxcb-xfixes -lxcb-xkb -lxcb-glx -lxcb-util -lxcb-ewmh -lX11 -lX11-xcb -lXext -lXau -lXdmcp -Wl,--end-group"
 
 # Use .a ONLY — forces cmake's find_dependency() to resolve X11/xcb/xkb
 # as static archives. OpenGL must be set explicitly since libGL.a doesn't exist.
@@ -35,7 +35,7 @@ cmake -B "$BUILD_DIR" \
 cmake --build "$BUILD_DIR" -j"$JOBS"
 
 echo "Stripping binary..."
-strip "$BUILD_DIR/swaedit"
+strip --strip-unneeded "$BUILD_DIR/swaedit"
 
 echo ""
 echo "Binary:  ${BUILD_DIR}/swaedit"
