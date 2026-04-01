@@ -18,10 +18,11 @@
 int main(int argc, char *argv[])
 {
     // Redirect stderr and stdout to log files (append mode), matching original Java behavior
-    if (!freopen("swaedit_err.log", "a", stderr))
-        stderr = fdopen(2, "w");
-    if (!freopen("swaedit_out.log", "a", stdout))
-        stdout = fdopen(1, "w");
+    FILE *f;
+    f = freopen("swaedit_err.log", "a", stderr);
+    (void)f;
+    f = freopen("swaedit_out.log", "a", stdout);
+    (void)f;
 
 #ifdef __linux__
     // If a bundled fonts.conf exists alongside the binary, tell fontconfig to use it.

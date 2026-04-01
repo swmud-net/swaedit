@@ -99,7 +99,8 @@ d=$(fetch "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${PCRE2
 cd "$d" && rm -rf build
 cmake -B build -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DPCRE2_BUILD_TESTS=OFF -DPCRE2_BUILD_PCRE2GREP=OFF
+    -DPCRE2_BUILD_TESTS=OFF -DPCRE2_BUILD_PCRE2GREP=OFF \
+    -DPCRE2_BUILD_PCRE2_16=ON
 cmake --build build -j"$JOBS" && cmake --install build
 
 # ===================================================================
@@ -166,6 +167,14 @@ ninja -C builddir -j"$JOBS" && ninja -C builddir install
 # Qt 6.8.x — static build
 # ===================================================================
 
+# Remove any stray .so files from our prefix so Qt configure only finds .a
+# (zlib's cmake creates shared libs even with BUILD_SHARED_LIBS=OFF)
+step "Purge .so from ${PREFIX}/lib"
+find "$PREFIX/lib" -name "*.so*" -type f -delete 2>/dev/null || true
+find "$PREFIX/lib" -name "*.so*" -type l -delete 2>/dev/null || true
+echo "Remaining libraries:"
+find "$PREFIX/lib" -name "*.a" | head -20
+
 step "Qt ${QT_VER} (static)"
 
 cd "$SRC"
@@ -203,7 +212,8 @@ echo "Configuring Qt..."
     -DFEATURE_eglfs=OFF \
     -DFEATURE_cups=OFF \
     -DFEATURE_dbus=OFF \
-    -DFEATURE_zstd=OFF
+    -DFEATURE_zstd=OFF \
+    -DFEATURE_glib=OFF
 
 echo "Building Qt (this takes 20-40 minutes)..."
 cmake --build . -j"$JOBS"
