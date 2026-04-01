@@ -310,6 +310,16 @@ ninja -C builddir -j"$JOBS" && ninja -C builddir install
 unset PKG_CONFIG_LIBDIR
 export PKG_CONFIG_PATH="$_SAVE_PKG_CONFIG_PATH"
 
+# Promote private deps to public in all .pc files.
+# Static linking needs ALL transitive deps (e.g., xcb → xau, xdmcp).
+# Without this, pkg-config omits Requires.private/Libs.private and
+# Qt's TEST_xcb_syslibs link test fails with unresolved symbols.
+step "Fix .pc files for static linking"
+find "$PREFIX/lib/pkgconfig" "$PREFIX/share/pkgconfig" -name "*.pc" -exec sed -i \
+    -e 's/^Requires\.private:/Requires:/' \
+    -e 's/^Libs\.private:/Libs:/' {} +
+echo "Patched $(find "$PREFIX/lib/pkgconfig" "$PREFIX/share/pkgconfig" -name '*.pc' | wc -l) .pc files"
+
 # ===================================================================
 # Qt 6.8.x — static build
 # ===================================================================
