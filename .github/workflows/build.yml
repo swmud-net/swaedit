@@ -147,6 +147,10 @@ jobs:
         run: |
           $(brew --prefix qt@6)/bin/macdeployqt build/SWAEdit.app
 
+      - name: Ad-hoc codesign
+        run: |
+          codesign --force --deep -s - build/SWAEdit.app
+
       - name: Create DMG
         run: |
           hdiutil create -volname "SWAEdit" -srcfolder build/SWAEdit.app \
@@ -201,6 +205,8 @@ jobs:
         shell: bash
         run: |
           cat > installer.nsi << 'NSIS'
+          SetCompressor /SOLID lzma
+
           !include "MUI2.nsh"
 
           Name "SWAEdit"
