@@ -410,6 +410,7 @@ echo "Configuring Qt..."
     -DOPENGL_glx_LIBRARY="/usr/lib/x86_64-linux-gnu/libGLX.so" \
     -DOPENGL_gl_LIBRARY="/usr/lib/x86_64-linux-gnu/libGL.so" \
     -DOPENGL_INCLUDE_DIR="/usr/include" \
+    -DTEST_xcb_syslibs=TRUE \
     -DFEATURE_eglfs=OFF \
     -DFEATURE_cups=OFF \
     -DFEATURE_dbus=OFF \
