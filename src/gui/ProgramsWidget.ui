@@ -148,7 +148,7 @@
        <property name="frameShadow" >
         <enum>QFrame::Plain</enum>
        </property>
-       <property name="numDigits" >
+       <property name="digitCount" >
         <number>3</number>
        </property>
        <property name="segmentStyle" >
