@@ -162,6 +162,16 @@ jobs:
         run: |
           $(brew --prefix qt@6)/bin/macdeployqt build/SWAEdit.app
 
+      - name: Strip unused Qt plugins
+        run: |
+          APP=build/SWAEdit.app/Contents/PlugIns
+          # Keep only the PNG image format plugin
+          find "$APP/imageformats" -type f ! -name '*png*' -delete
+          # Remove plugin categories the app doesn't use
+          rm -rf "$APP/iconengines" "$APP/tls" "$APP/networkinformation" "$APP/generic"
+          echo "Remaining plugins:"
+          find "$APP" -type f | sort
+
       - name: Ad-hoc codesign
         run: |
           codesign --force --deep -s - build/SWAEdit.app
