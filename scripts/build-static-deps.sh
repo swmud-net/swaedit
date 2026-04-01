@@ -156,6 +156,15 @@ export PKG_CONFIG_PATH=""
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export ACLOCAL_PATH="$PREFIX/share/aclocal"
 
+# pthread-stubs: glibc provides pthread natively, but libxcb's configure
+# requires the .pc file. System's copy is hidden by PKG_CONFIG_LIBDIR.
+cat > "$PREFIX/lib/pkgconfig/pthread-stubs.pc" << 'PTHREADPC'
+Name: pthread stubs
+Description: Stubs for pthread functions provided by glibc
+Version: 0.4
+Libs:
+PTHREADPC
+
 # --- Protocol definitions & build macros ---
 
 step "util-macros ${UTIL_MACROS_VER}"
@@ -332,6 +341,23 @@ find "$PREFIX/lib" -name "*.so*" -type l -delete 2>/dev/null || true
 echo "Remaining libraries:"
 find "$PREFIX/lib" -name "*.a" | head -20
 
+# Create pkg-config wrapper that forces --static for all lookups.
+# Static .a linking needs ALL transitive deps (e.g., xcb → xau, xdmcp).
+# Without --static, pkg-config omits Requires.private/Libs.private
+# and Qt's TEST_xcb_syslibs link test fails.
+mkdir -p "$PREFIX/bin"
+cat > "$PREFIX/bin/pkg-config-static" << 'WRAPPER'
+#!/bin/sh
+exec /usr/bin/pkg-config --static "$@"
+WRAPPER
+chmod +x "$PREFIX/bin/pkg-config-static"
+
+# Debug: verify key packages resolve correctly
+echo "=== pkg-config --static check ==="
+"$PREFIX/bin/pkg-config-static" --libs xcb 2>&1 || echo "WARN: xcb not found"
+"$PREFIX/bin/pkg-config-static" --libs xkbcommon-x11 2>&1 || echo "WARN: xkbcommon-x11 not found"
+echo "=== static .a count: $(find "$PREFIX/lib" -name '*.a' | wc -l) ==="
+
 step "Qt ${QT_VER} (static)"
 
 cd "$SRC"
@@ -366,6 +392,7 @@ echo "Configuring Qt..."
     -DCMAKE_FIND_LIBRARY_SUFFIXES=".a;.so" \
     -DCMAKE_C_FLAGS="-fPIC" \
     -DCMAKE_CXX_FLAGS="-fPIC" \
+    -DPKG_CONFIG_EXECUTABLE="$PREFIX/bin/pkg-config-static" \
     -DFEATURE_eglfs=OFF \
     -DFEATURE_cups=OFF \
     -DFEATURE_dbus=OFF \
