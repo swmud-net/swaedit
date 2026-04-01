@@ -17,7 +17,7 @@ cmake -B "$BUILD_DIR" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${PREFIX}/qt6;${PREFIX}" \
     -DCMAKE_FIND_LIBRARY_SUFFIXES=".a;.so" \
-    -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+    -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -L${PREFIX}/lib -Wl,--start-group -lfontconfig -lfreetype -lharfbuzz -lexpat -lpng16 -lz -lbz2 -lpcre2-8 -Wl,--end-group"
 
 cmake --build "$BUILD_DIR" -j"$JOBS"
 

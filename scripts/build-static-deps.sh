@@ -141,7 +141,7 @@ cmake --build build -j"$JOBS" && cmake --install build
 step "harfbuzz ${HARFBUZZ_VER} (no glib, no ICU, no graphite2)"
 d=$(fetch "https://github.com/harfbuzz/harfbuzz/releases/download/${HARFBUZZ_VER}/harfbuzz-${HARFBUZZ_VER}.tar.xz")
 cd "$d" && rm -rf builddir
-meson setup builddir --prefix="$PREFIX" --default-library=static \
+meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
     -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled \
     -Dcairo=disabled -Dicu=disabled -Dgraphite2=disabled \
     -Dtests=disabled -Ddocs=disabled -Dbenchmark=disabled
@@ -157,7 +157,7 @@ cmake --build build -j"$JOBS" && cmake --install build
 step "fontconfig ${FONTCONFIG_VER} (no glib)"
 d=$(fetch "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/${FONTCONFIG_VER}/fontconfig-${FONTCONFIG_VER}.tar.gz")
 cd "$d" && rm -rf builddir
-meson setup builddir --prefix="$PREFIX" --default-library=static \
+meson setup builddir --prefix="$PREFIX" --libdir=lib --default-library=static \
     -Ddoc=disabled -Dtests=disabled -Dcache-build=disabled \
     -Dtools=disabled
 ninja -C builddir -j"$JOBS" && ninja -C builddir install
