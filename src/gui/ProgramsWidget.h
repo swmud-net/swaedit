@@ -35,6 +35,7 @@ private slots:
     void onAcceptClicked();
     void onCancelClicked();
     void onWholePhraseToggled(bool checked);
+    void onTypeComboChanged(int idx);
     void onTriggerEditTextChanged(const QString &text);
     void onProgramEditTextChanged();
 
@@ -53,6 +54,7 @@ private:
     ProgramsHighlighter *highlighter_ = nullptr;
     int currentIndex_ = -1;
     bool canChange_ = false;
+    bool modified_ = false;
 };
 
 #endif // PROGRAMSWIDGET_H

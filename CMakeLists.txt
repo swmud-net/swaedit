@@ -22,6 +22,7 @@ set(SOURCES
     src/gui/ProgramsHighlighter.cpp
     src/gui/ValueFlagsWidget.cpp
     src/gui/ResetFlagsWidget.cpp
+    src/gui/ResetVnumEventFilter.cpp
     src/gui/NewExitWidget.cpp
     src/gui/NewResetWidget.cpp
     src/gui/NewShopWidget.cpp
@@ -53,6 +54,7 @@ set(HEADERS
     src/gui/ProgramsHighlighter.h
     src/gui/ValueFlagsWidget.h
     src/gui/ResetFlagsWidget.h
+    src/gui/ResetVnumEventFilter.h
     src/gui/NewExitWidget.h
     src/gui/NewResetWidget.h
     src/gui/NewShopWidget.h

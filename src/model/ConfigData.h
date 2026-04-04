@@ -103,6 +103,7 @@ struct ConfigData {
     QList<FlagDef> shopFlags;
 
     QList<ExitDef> exits;
+    int exitGridColumns = 3;
     QList<ItemTypeDef> itemTypes;
 
     QList<QString> races;

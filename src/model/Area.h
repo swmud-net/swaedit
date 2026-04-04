@@ -81,13 +81,13 @@ struct ExtraDesc {
 // --- Head sub-structs ---
 
 struct Vnums {
-    int lvnum = 0;
-    int uvnum = 0;
+    qint64 lvnum = 0;
+    qint64 uvnum = 0;
 };
 
 struct Economy {
-    int low = 0;
-    int high = 0;
+    qint64 low = 0;
+    qint64 high = 0;
 };
 
 struct Reset {
@@ -117,7 +117,7 @@ struct Head {
 // --- Mobiles ---
 
 struct Mobile {
-    int vnum = 0;
+    qint64 vnum = 0;
     QString name;
     ShortDesc shortDesc;
     QString longDesc;
@@ -128,7 +128,7 @@ struct Mobile {
     qint64 affected = 0;
     int alignment = 0;
     int sex = 0;
-    int credits = 0;
+    qint64 credits = 0;
     int position = 0;
     SectionA sectiona;
     SectionS sections;
@@ -163,7 +163,7 @@ struct Affect {
 };
 
 struct AreaObject {
-    int vnum = 0;
+    qint64 vnum = 0;
     QString name;
     ShortDesc shortDesc;
     QString description;
@@ -173,9 +173,9 @@ struct AreaObject {
     qint64 wearflags = 0;
     int layers = 0;
     ObjectValues values;
-    int weight = 0;
-    int cost = 0;
-    int gender = 0;
+    qint64 weight = 0;
+    qint64 cost = 0;
+    qint64 gender = 0;
     int level = 0;
     QList<ExtraDesc> extradescs;
     QList<Requirement> requirements;
@@ -190,22 +190,22 @@ struct Exit {
     QString description;
     QString keyword;
     qint64 flags = 0;
-    int key = 0;
-    int vnum = 0;
+    qint64 key = 0;
+    qint64 vnum = 0;
     int distance = 0;
 };
 
 struct Room {
-    int vnum = 0;
+    qint64 vnum = 0;
     QString name;
     QString description;
     QString nightdesc;
     int light = 0;
     qint64 flags = 0;
     int sector = 0;
-    int teledelay = 0;
-    int televnum = 0;
-    int tunnel = 0;
+    qint64 teledelay = 0;
+    qint64 televnum = 0;
+    qint64 tunnel = 0;
     QList<Exit> exits;
     QList<ExtraDesc> extradescs;
     QList<Program> programs;
@@ -215,11 +215,11 @@ struct Room {
 
 struct AreaReset {
     QString command;
-    int extra = 0;
-    int arg1 = 0;
-    int arg2 = 0;
-    int arg3 = 0;
-    int arg4 = 0;
+    qint64 extra = 0;
+    qint64 arg1 = 0;
+    qint64 arg2 = 0;
+    qint64 arg3 = 0;
+    qint64 arg4 = 0;
 };
 
 // --- Shops ---
@@ -233,7 +233,7 @@ struct ShopTypes {
 };
 
 struct Shop {
-    int keeper = 0;
+    qint64 keeper = 0;
     ShopTypes types;
     int profitbuy = 0;
     int profitsell = 0;
@@ -251,7 +251,7 @@ struct RepairTypes {
 };
 
 struct Repair {
-    int keeper = 0;
+    qint64 keeper = 0;
     RepairTypes types;
     int profitfix = 0;
     int shoptype = 0;
@@ -262,7 +262,7 @@ struct Repair {
 // --- Specials ---
 
 struct Special {
-    int vnum = 0;
+    qint64 vnum = 0;
     QString function;
     QString function2;
 };

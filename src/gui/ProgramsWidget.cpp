@@ -43,6 +43,7 @@ ProgramsWidget::ProgramsWidget(QList<Program> *programs,
     connect(ui->acceptButton, &QPushButton::clicked, this, &ProgramsWidget::onAcceptClicked);
     connect(ui->cancelButton, &QPushButton::clicked, this, &ProgramsWidget::onCancelClicked);
     connect(ui->wholePhraseCheckBox, &QCheckBox::toggled, this, &ProgramsWidget::onWholePhraseToggled);
+    connect(ui->typeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ProgramsWidget::onTypeComboChanged);
     connect(ui->triggerEdit, &QLineEdit::textChanged, this, &ProgramsWidget::onTriggerEditTextChanged);
     connect(ui->programEdit, &QTextEdit::textChanged, this, &ProgramsWidget::onProgramEditTextChanged);
 
@@ -82,13 +83,8 @@ void ProgramsWidget::saveCurrentToList()
     prog.type = ui->typeComboBox->currentText();
     prog.comlist = ui->programEdit->toPlainText();
 
-    // Get trigger text, accounting for whole phrase prefix
-    QString triggerText = ui->triggerEdit->text();
-    if (ui->wholePhraseCheckBox->isChecked()) {
-        prog.args = "p " + triggerText;
-    } else {
-        prog.args = triggerText;
-    }
+    // Save trigger text directly — "p " prefix is visible in the field
+    prog.args = ui->triggerEdit->text();
 }
 
 void ProgramsWidget::fillFields(int idx)
@@ -113,15 +109,10 @@ void ProgramsWidget::fillFields(int idx)
     int typeIdx = ui->typeComboBox->findText(prog.type);
     if (typeIdx >= 0) ui->typeComboBox->setCurrentIndex(typeIdx);
 
-    // Set trigger / whole phrase
+    // Set trigger / whole phrase — show full args including "p " prefix
     QString args = prog.args;
-    if (args.startsWith("p ")) {
-        ui->wholePhraseCheckBox->setChecked(true);
-        ui->triggerEdit->setText(args.mid(2));
-    } else {
-        ui->wholePhraseCheckBox->setChecked(false);
-        ui->triggerEdit->setText(args);
-    }
+    ui->triggerEdit->setText(args);
+    ui->wholePhraseCheckBox->setChecked(args.trimmed().startsWith("p "));
 
     // Set program text
     ui->programEdit->setPlainText(prog.comlist);
@@ -143,7 +134,7 @@ void ProgramsWidget::updateNavigationButtons()
     ui->nextButton->setEnabled(notLast);
     ui->lastButton->setEnabled(notLast);
     ui->deleteButton->setEnabled(hasItems);
-    ui->acceptButton->setEnabled(true);
+    ui->acceptButton->setEnabled(modified_);
 }
 
 void ProgramsWidget::setFieldsEnabled(bool enabled)
@@ -187,6 +178,7 @@ void ProgramsWidget::onAddClicked()
     prog.comlist = "say Witaj $n";
     workingPrograms_.append(prog);
 
+    modified_ = true;
     navigateTo(workingPrograms_.size() - 1);
 }
 
@@ -197,8 +189,10 @@ void ProgramsWidget::onDeleteClicked()
 
     canChange_ = false;
     workingPrograms_.removeAt(currentIndex_);
+    modified_ = true;
 
     if (workingPrograms_.isEmpty()) {
+        modified_ = !originalPrograms_->isEmpty();
         currentIndex_ = -1;
         fillFields(-1);
         updateNavigationButtons();
@@ -228,9 +222,19 @@ void ProgramsWidget::onCancelClicked()
     close();
 }
 
+void ProgramsWidget::onTypeComboChanged(int idx)
+{
+    Q_UNUSED(idx);
+    if (!canChange_) return;
+    modified_ = true;
+    updateNavigationButtons();
+}
+
 void ProgramsWidget::onTriggerEditTextChanged(const QString &text)
 {
     if (!canChange_) return;
+    modified_ = true;
+    updateNavigationButtons();
     if (text.isEmpty()) {
         QMessageBox::warning(this, "Invalid Trigger", "Trigger cannot be empty!");
     }
@@ -239,6 +243,8 @@ void ProgramsWidget::onTriggerEditTextChanged(const QString &text)
 void ProgramsWidget::onProgramEditTextChanged()
 {
     if (!canChange_) return;
+    modified_ = true;
+    updateNavigationButtons();
     if (ui->programEdit->toPlainText().isEmpty()) {
         QMessageBox::warning(this, "Invalid Program", "Program cannot be empty!");
     }
@@ -247,23 +253,25 @@ void ProgramsWidget::onProgramEditTextChanged()
 void ProgramsWidget::onWholePhraseToggled(bool checked)
 {
     if (!canChange_) return;
+    modified_ = true;
+    updateNavigationButtons();
     if (currentIndex_ < 0 || currentIndex_ >= workingPrograms_.size())
         return;
 
     Program &prog = workingPrograms_[currentIndex_];
-    QString triggerText = ui->triggerEdit->text();
+    QString currentArgs = prog.args.trimmed();
 
     if (checked) {
-        prog.args = "p " + triggerText;
+        prog.args = "p " + currentArgs;
     } else {
-        prog.args = triggerText;
+        if (currentArgs.startsWith("p "))
+            prog.args = currentArgs.mid(2);
+        else
+            prog.args = currentArgs;
     }
 
-    // Update the triggerEdit to reflect the change (matching Java real-time update)
+    // Update the trigger field to show the modified args
     canChange_ = false;
-    if (checked && !prog.args.startsWith("p ")) {
-        prog.args = "p " + triggerText;
-    }
-    ui->triggerEdit->setText(triggerText);
+    ui->triggerEdit->setText(prog.args);
     canChange_ = true;
 }

@@ -17,7 +17,7 @@ public:
     ~NewShopWidget();
 
 signals:
-    void vnumChosen(int vnum);
+    void vnumChosen(qint64 vnum);
 
 private slots:
     void onAcceptClicked();

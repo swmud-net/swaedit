@@ -15,7 +15,7 @@ public:
     ~VnumQuestionWidget();
 
 signals:
-    void vnumSet(int vnum);
+    void vnumSet(qint64 vnum);
 
 private slots:
     void onVnumEditTextChanged(const QString &text);

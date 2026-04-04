@@ -65,11 +65,11 @@ void ResetFlagsWidget::showFlagsWidget()
         // Update the reset arg value
         if (reset_) {
             switch (argIndex_) {
-            case 0: reset_->extra = static_cast<int>(value); break;
-            case 1: reset_->arg1 = static_cast<int>(value); break;
-            case 2: reset_->arg2 = static_cast<int>(value); break;
-            case 3: reset_->arg3 = static_cast<int>(value); break;
-            case 4: reset_->arg4 = static_cast<int>(value); break;
+            case 0: reset_->extra = value; break;
+            case 1: reset_->arg1 = value; break;
+            case 2: reset_->arg2 = value; break;
+            case 3: reset_->arg3 = value; break;
+            case 4: reset_->arg4 = value; break;
             }
         }
 

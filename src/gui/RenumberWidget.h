@@ -18,7 +18,7 @@ public:
     ~RenumberWidget();
 
 signals:
-    void paramsSpecified(int newFirstVnum, int flags);
+    void paramsSpecified(qint64 newFirstVnum, int flags);
 
 private slots:
     void onVnumEditTextChanged(const QString &text);

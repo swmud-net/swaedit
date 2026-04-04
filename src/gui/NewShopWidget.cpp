@@ -59,7 +59,7 @@ void NewShopWidget::onAcceptClicked()
 {
     if (ui->keeperBox->currentIndex() < 0) return;
 
-    int keeperVnum = ui->keeperBox->currentData().toInt();
+    qint64 keeperVnum = ui->keeperBox->currentData().toLongLong();
     emit vnumChosen(keeperVnum);
     close();
 }

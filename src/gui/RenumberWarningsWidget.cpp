@@ -14,7 +14,7 @@ RenumberWarningsWidget::RenumberWarningsWidget(const QStringList &warnings,
         ui->warningsListWidget->addItem(w);
     }
 
-    // The close button connection is already wired in the .ui file
+    statusBar()->showMessage(QStringLiteral("Number of warnings: %1.").arg(warnings.size()));
 }
 
 RenumberWarningsWidget::~RenumberWarningsWidget()

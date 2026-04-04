@@ -62,6 +62,7 @@ private:
 
     QImage iconImage_;
     QPixmap borderMap_;
+    QRegion balloonRegion_;
     QLabel *titleLabel_;
     QLabel *msgLabel_;
     bool arrowTop_;

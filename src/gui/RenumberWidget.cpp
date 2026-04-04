@@ -40,14 +40,14 @@ RenumberWidget::~RenumberWidget()
 void RenumberWidget::onVnumEditTextChanged(const QString &text)
 {
     bool ok;
-    int val = text.toInt(&ok);
+    qint64 val = text.toLongLong(&ok);
     ui->acceptButton->setEnabled(ok && val > 0);
 }
 
 void RenumberWidget::onAcceptClicked()
 {
     bool ok;
-    int newFirstVnum = ui->vnumEdit->text().toInt(&ok);
+    qint64 newFirstVnum = ui->vnumEdit->text().toLongLong(&ok);
     if (!ok || newFirstVnum <= 0) return;
 
     int flags = RENUMBER_RELIABLE;

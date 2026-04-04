@@ -125,37 +125,37 @@ private:
     void resetCreateFlagsWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex);
     void setupResetLabels(const AreaReset &reset);
     QString prepareLabelName(const QString &argName, int idx);
-    bool resetIsOtherVnum(int vnum, AreaReset *reset, const ResetInfoDef &resDef, int argIndex);
-    void addOtherVnum(QComboBox *box, int vnum);
-    int getResetArgValue(const AreaReset &reset, int argIndex);
-    void setResetArgValue(AreaReset *reset, int argIndex, int value);
+    bool resetIsOtherVnum(qint64 vnum, AreaReset *reset, const ResetInfoDef &resDef, int argIndex);
+    void addOtherVnum(QComboBox *box, qint64 vnum);
+    qint64 getResetArgValue(const AreaReset &reset, int argIndex);
+    void setResetArgValue(AreaReset *reset, int argIndex, qint64 value);
     const ResetArgDef &getResetArgDef(const ResetInfoDef &resDef, int argIndex);
     QString getResetArgName(int argIndex);
 
     // --- Shop Data ---
     Shop *getCurrentShop();
-    Shop *getShopByKeeperVnum(int keeperVnum);
-    Shop newShop(int keeperVnum);
+    Shop *getShopByKeeperVnum(qint64 keeperVnum);
+    Shop newShop(qint64 keeperVnum);
     void fillShopData(int shopIndex);
     void clearShopData();
 
     // --- Repair Data ---
     Repair *getCurrentRepair();
-    Repair *getRepairByKeeperVnum(int keeperVnum);
-    Repair newRepair(int keeperVnum);
+    Repair *getRepairByKeeperVnum(qint64 keeperVnum);
+    Repair newRepair(qint64 keeperVnum);
     void fillRepairData(int repairIndex);
     void clearRepairData();
 
     // --- Entity creation helpers ---
     ShortDesc newShortDesc();
-    int findNextFreeVnum(const QString &entityType);
+    qint64 findNextFreeVnum(const QString &entityType);
 
     // --- Map helpers ---
-    void mapRoomVnumSelected(int vnum);
-    void mapRoomExitSelected(int ownerRoomVnum, int exitDirection, int destRoomVnum);
+    void mapRoomVnumSelected(qint64 vnum);
+    void mapRoomExitSelected(qint64 ownerRoomVnum, int exitDirection, qint64 destRoomVnum);
 
     // --- Renumber ---
-    void renumber(int newFirstVnum, int optionsFlags);
+    void renumber(qint64 newFirstVnum, int optionsFlags);
 
     // --- Utility ---
     static void centerChildOnParent(QWidget *child, QWidget *parent);
@@ -348,10 +348,9 @@ private slots:
     void onRepairDeleteButtonClicked();
 
     // --- Callback slots (from child dialogs/widgets) ---
-    void areaCreated();
     void resetCreated();
-    void shopVnumChosen(int vnum);
-    void repairVnumChosen(int vnum);
+    void shopVnumChosen(qint64 vnum);
+    void repairVnumChosen(qint64 vnum);
     void mapClosed();
     void mapRefreshed();
     void mapRoomMarkingFlagRequested();

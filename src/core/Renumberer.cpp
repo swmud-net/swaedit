@@ -4,7 +4,7 @@
 #include <QRegularExpression>
 #include <QTextStream>
 
-Renumberer::Renumberer(Area *area, int newFirstVnum, int flags,
+Renumberer::Renumberer(Area *area, qint64 newFirstVnum, int flags,
                        const QMap<QString, ResetInfoDef> &resetsMap)
     : area_(area)
     , newFirstVnum_(newFirstVnum)
@@ -15,9 +15,9 @@ Renumberer::Renumberer(Area *area, int newFirstVnum, int flags,
 
 void Renumberer::renumber()
 {
-    int oldLvnum = area_->head.vnums.lvnum;
-    int oldUvnum = area_->head.vnums.uvnum;
-    int diff = newFirstVnum_ - oldLvnum;
+    qint64 oldLvnum = area_->head.vnums.lvnum;
+    qint64 oldUvnum = area_->head.vnums.uvnum;
+    qint64 diff = newFirstVnum_ - oldLvnum;
 
     if (diff == 0)
         return;
@@ -26,31 +26,43 @@ void Renumberer::renumber()
     area_->head.vnums.lvnum += diff;
     area_->head.vnums.uvnum += diff;
 
-    // Renumber items
+    // Renumber items (only vnums within the area range)
     for (AreaObject &obj : area_->objects) {
-        obj.vnum += diff;
+        if (obj.vnum >= oldLvnum && obj.vnum <= oldUvnum) {
+            obj.vnum += diff;
+        }
 
         if (flags_ & RENUMBER_MUDPROGS) {
+            int progNo = 0;
             for (Program &prog : obj.programs) {
-                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
+                ++progNo;
+                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff,
+                                    QStringLiteral("item"), obj.vnum, progNo);
             }
         }
     }
 
-    // Renumber mobiles
+    // Renumber mobiles (only vnums within the area range)
     for (Mobile &mob : area_->mobiles) {
-        mob.vnum += diff;
+        if (mob.vnum >= oldLvnum && mob.vnum <= oldUvnum) {
+            mob.vnum += diff;
+        }
 
         if (flags_ & RENUMBER_MUDPROGS) {
+            int progNo = 0;
             for (Program &prog : mob.programs) {
-                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
+                ++progNo;
+                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff,
+                                    QStringLiteral("mobile"), mob.vnum, progNo);
             }
         }
     }
 
-    // Renumber rooms
+    // Renumber rooms (only vnums within the area range)
     for (Room &room : area_->rooms) {
-        room.vnum += diff;
+        if (room.vnum >= oldLvnum && room.vnum <= oldUvnum) {
+            room.vnum += diff;
+        }
 
         // Renumber exit destination vnums (only if they fall within old range)
         for (Exit &exit : room.exits) {
@@ -65,8 +77,11 @@ void Renumberer::renumber()
         }
 
         if (flags_ & RENUMBER_MUDPROGS) {
+            int progNo = 0;
             for (Program &prog : room.programs) {
-                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff);
+                ++progNo;
+                renumberMudprogText(prog.comlist, oldLvnum, oldUvnum, diff,
+                                    QStringLiteral("room"), room.vnum, progNo);
             }
         }
     }
@@ -79,7 +94,7 @@ void Renumberer::renumber()
         const ResetInfoDef &resDef = resetsMap_[reset.command];
 
         // Helper lambda to renumber a single arg based on its type
-        auto renumberArg = [&](int &argVal, const ResetArgDef &argDef) {
+        auto renumberArg = [&](qint64 &argVal, const ResetArgDef &argDef) {
             if (argDef.type == "room" || argDef.type == "room_other" ||
                 argDef.type == "mob"  || argDef.type == "mob_other"  ||
                 argDef.type == "item" || argDef.type == "item_other" ||
@@ -119,7 +134,8 @@ void Renumberer::renumber()
     }
 }
 
-void Renumberer::renumberMudprogText(QString &comlist, int oldLvnum, int oldUvnum, int diff)
+void Renumberer::renumberMudprogText(QString &comlist, qint64 oldLvnum, qint64 oldUvnum, qint64 diff,
+                                     const QString &ownerType, qint64 ownerVnum, int progNo)
 {
     // Scan for numbers optionally prefixed with m/i/o (matching Java regex)
     // Pattern matches: optional m/i/o prefix followed by digits starting with 1-9
@@ -131,27 +147,44 @@ void Renumberer::renumberMudprogText(QString &comlist, int oldLvnum, int oldUvnu
         int start;
         int length;
         QString newText;
+        int matchStart;  // start of full match (for offset calculation)
+        qint64 num;
+        qint64 newNum;
     };
     QList<Replacement> replacements;
 
     while (it.hasNext()) {
         QRegularExpressionMatch match = it.next();
-        QString prefix = match.captured(1);
         bool ok;
-        int num = match.captured(2).toInt(&ok);
+        qint64 num = match.captured(2).toLongLong(&ok);
         if (ok && num >= oldLvnum && num <= oldUvnum) {
-            int newNum = num + diff;
+            qint64 newNum = num + diff;
             Replacement r;
             // Replace only the numeric part, preserving the prefix
             r.start = match.capturedStart(2);
             r.length = match.capturedLength(2);
             r.newText = QString::number(newNum);
+            r.matchStart = match.capturedStart(0);
+            r.num = num;
+            r.newNum = newNum;
             replacements.append(r);
-
-            warnings_.append("Mudprog: replaced " + QString::number(num) +
-                             " with " + QString::number(newNum) +
-                             " in program text");
         }
+    }
+
+    // Generate warnings before applying replacements (offsets are still valid)
+    for (const Replacement &r : replacements) {
+        // Compute line number and offset within line
+        int lineNo = comlist.left(r.matchStart).count('\n') + 1;
+        int lastNewline = comlist.lastIndexOf('\n', r.matchStart - 1);
+        int offset = (lastNewline >= 0) ? (r.matchStart - lastNewline - 1) : r.matchStart;
+
+        warnings_.append(QStringLiteral("changed ") + ownerType + "'s: " +
+                         QString::number(ownerVnum) + " program's: " +
+                         QString::number(progNo) + " vnum: " +
+                         QString::number(r.num) + " to: " +
+                         QString::number(r.newNum) + " in line: " +
+                         QString::number(lineNo) + " at offset: " +
+                         QString::number(offset));
     }
 
     // Apply replacements in reverse order

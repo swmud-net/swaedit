@@ -14,7 +14,7 @@ public:
     static constexpr int RENUMBER_RELIABLE = 0;
     static constexpr int RENUMBER_MUDPROGS = 1;
 
-    Renumberer(Area *area, int newFirstVnum, int flags,
+    Renumberer(Area *area, qint64 newFirstVnum, int flags,
                const QMap<QString, ResetInfoDef> &resetsMap);
 
     void renumber();
@@ -23,10 +23,11 @@ public:
     void saveWarnings(const QString &path) const;
 
 private:
-    void renumberMudprogText(QString &comlist, int oldLvnum, int oldUvnum, int diff);
+    void renumberMudprogText(QString &comlist, qint64 oldLvnum, qint64 oldUvnum, qint64 diff,
+                            const QString &ownerType, qint64 ownerVnum, int progNo);
 
     Area *area_;
-    int newFirstVnum_;
+    qint64 newFirstVnum_;
     int flags_;
     QMap<QString, ResetInfoDef> resetsMap_;
     QStringList warnings_;

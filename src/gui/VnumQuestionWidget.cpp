@@ -28,14 +28,14 @@ VnumQuestionWidget::~VnumQuestionWidget()
 void VnumQuestionWidget::onVnumEditTextChanged(const QString &text)
 {
     bool ok;
-    int val = text.toInt(&ok);
+    qint64 val = text.toLongLong(&ok);
     ui->acceptButton->setEnabled(ok && val > 0);
 }
 
 void VnumQuestionWidget::onAcceptClicked()
 {
     bool ok;
-    int vnum = ui->vnumEdit->text().toInt(&ok);
+    qint64 vnum = ui->vnumEdit->text().toLongLong(&ok);
     if (!ok || vnum <= 0) return;
 
     emit vnumSet(vnum);

@@ -28,7 +28,7 @@ bool saveArea(const Area &area, const QString &filePath);
 
 // Config file loaders
 QList<FlagDef> loadFlags(const QString &filePath);
-QList<ExitDef> loadExits(const QString &filePath);
+QList<ExitDef> loadExits(const QString &filePath, int &gridColumns);
 QList<ItemTypeDef> loadItemTypes(const QString &filePath);
 QList<QString> loadNames(const QString &filePath);
 QList<TypeDef> loadTypes(const QString &filePath);

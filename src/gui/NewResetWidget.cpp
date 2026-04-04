@@ -19,7 +19,7 @@ NewResetWidget::NewResetWidget(Area *area,
     for (int i = 0; i < resetsInfo_.size(); ++i) {
         const ResetInfoDef &ri = resetsInfo_[i];
         if (requirementMet(ri.requires)) {
-            ui->typeBox->addItem(ri.value + " (" + ri.name + ")", i);
+            ui->typeBox->addItem(ri.name, ri.value);
         }
     }
 
@@ -48,13 +48,12 @@ bool NewResetWidget::requirementMet(const QString &requires) const
 
 void NewResetWidget::onAcceptClicked()
 {
-    int dataIdx = ui->typeBox->currentData().toInt();
-    if (dataIdx < 0 || dataIdx >= resetsInfo_.size()) return;
+    if (ui->typeBox->currentIndex() < 0) return;
 
-    const ResetInfoDef &ri = resetsInfo_[dataIdx];
+    QString command = ui->typeBox->currentData().toString();
 
     AreaReset reset;
-    reset.command = ri.value;
+    reset.command = command;
     reset.extra = 0;
     reset.arg1 = 0;
     reset.arg2 = 0;

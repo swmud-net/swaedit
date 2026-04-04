@@ -20,6 +20,7 @@
 #include "gui/RenumberWidget.h"
 #include "gui/RenumberWarningsWidget.h"
 #include "gui/VnumQuestionWidget.h"
+#include "gui/ResetVnumEventFilter.h"
 #include "gui/ToolTipEventFilter.h"
 
 #include <QAbstractButton>
@@ -541,6 +542,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (canLeaveCurrent()) {
         sysTray_->hide();
         event->accept();
+        QApplication::quit();
     } else {
         event->ignore();
     }
@@ -596,7 +598,7 @@ void MainWindow::saveArea()
     QFile::remove(currentFileName_ + "~");
     currentFileName_ = fileName;
     setNotModified();
-    statusBar()->showMessage("Area saved to " + fileName);
+    statusBar()->showMessage("Area saved to " + fileName, 5000);
 }
 
 void MainWindow::saveAreaAs()
@@ -614,7 +616,7 @@ void MainWindow::saveAreaAs()
     QFile::remove(currentFileName_ + "~");
     currentFileName_ = fileName;
     setNotModified();
-    statusBar()->showMessage("Area saved to " + fileName);
+    statusBar()->showMessage("Area saved to " + fileName, 5000);
 }
 
 void MainWindow::timerBackup()
@@ -694,7 +696,7 @@ void MainWindow::fillAreaData()
             "'" + area_.head.name + "' loaded with: "
             + QString::number(area_.objects.size()) + " objects, "
             + QString::number(area_.mobiles.size()) + " mobiles, "
-            + QString::number(area_.rooms.size()) + " rooms.");
+            + QString::number(area_.rooms.size()) + " rooms.", 5000);
     }
 }
 
@@ -715,8 +717,6 @@ void MainWindow::clearAreaData()
     ui->resetMsgEdit->clear();
     ui->lrangeSpinBox->setValue(1);
     ui->hrangeSpinBox->setValue(20);
-
-    headCanChange_ = false;
 }
 
 // --- Area Data slots ---
@@ -761,7 +761,7 @@ void MainWindow::onLvnumEditTextChanged(const QString &str)
 {
     if (!headCanChange_) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Lower Vnum must have number value!");
         ui->lvnumEdit->setText(QString::number(area_.head.vnums.lvnum));
@@ -775,7 +775,7 @@ void MainWindow::onUvnumEditTextChanged(const QString &str)
 {
     if (!headCanChange_) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Upper Vnum must have number value!");
         ui->uvnumEdit->setText(QString::number(area_.head.vnums.uvnum));
@@ -817,7 +817,7 @@ void MainWindow::onLeconomyEditTextChanged(const QString &str)
 {
     if (!headCanChange_) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Low Economy must have number value!");
         ui->leconomyEdit->setText(QString::number(area_.head.economy.low));
@@ -831,7 +831,7 @@ void MainWindow::onHeconomyEditTextChanged(const QString &str)
 {
     if (!headCanChange_) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "High Economy must have number value!");
         ui->heconomyEdit->setText(QString::number(area_.head.economy.high));
@@ -885,7 +885,7 @@ AreaObject *MainWindow::getCurrentObject()
     int idx = ui->itemNavigatorComboBox->currentIndex();
     if (idx < 0 || idx >= area_.objects.size())
         return nullptr;
-    int vnum = ui->itemNavigatorComboBox->currentData().toInt();
+    qint64 vnum = ui->itemNavigatorComboBox->currentData().toLongLong();
     for (int i = 0; i < area_.objects.size(); ++i) {
         if (area_.objects[i].vnum == vnum)
             return &area_.objects[i];
@@ -924,7 +924,7 @@ void MainWindow::fillItemData(int objectIndex)
     int typeIdx = ui->itemTypeComboBox->findData(obj.type);
     if (typeIdx >= 0) ui->itemTypeComboBox->setCurrentIndex(typeIdx);
 
-    int genderIdx = ui->itemGenderComboBox->findData(obj.gender);
+    int genderIdx = ui->itemGenderComboBox->findData(static_cast<int>(obj.gender));
     if (genderIdx >= 0) ui->itemGenderComboBox->setCurrentIndex(genderIdx);
 
     ui->itemExtraFlagsEdit->setText(QString::number(obj.extraflags));
@@ -1162,7 +1162,7 @@ void MainWindow::onItemGenderComboBoxCurrentIndexChanged(int idx)
     if (!itemCanChange_) return;
     AreaObject *obj = getCurrentObject();
     if (!obj) return;
-    obj->gender = ui->itemGenderComboBox->itemData(idx).toInt();
+    obj->gender = ui->itemGenderComboBox->itemData(idx).toLongLong();
     setModified();
 }
 
@@ -1336,7 +1336,7 @@ void MainWindow::onItemWeightEditTextChanged(const QString &str)
     AreaObject *obj = getCurrentObject();
     if (!obj) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Item Weight must have number value!");
         ui->itemWeightEdit->setText(QString::number(obj->weight));
@@ -1352,7 +1352,7 @@ void MainWindow::onItemCostEditTextChanged(const QString &str)
     AreaObject *obj = getCurrentObject();
     if (!obj) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Item Cost must have number value!");
         ui->itemCostEdit->setText(QString::number(obj->cost));
@@ -1595,7 +1595,7 @@ Mobile *MainWindow::getCurrentMob()
     int idx = ui->mobNavigatorComboBox->currentIndex();
     if (idx < 0 || idx >= area_.mobiles.size())
         return nullptr;
-    int vnum = ui->mobNavigatorComboBox->currentData().toInt();
+    qint64 vnum = ui->mobNavigatorComboBox->currentData().toLongLong();
     for (int i = 0; i < area_.mobiles.size(); ++i) {
         if (area_.mobiles[i].vnum == vnum)
             return &area_.mobiles[i];
@@ -1969,7 +1969,7 @@ void MainWindow::onMobCreditsEditTextChanged(const QString &str)
     Mobile *mob = getCurrentMob();
     if (!mob) return;
     bool ok;
-    int val = str.toInt(&ok);
+    qint64 val = str.toLongLong(&ok);
     if (!ok) {
         QMessageBox::critical(this, "Invalid Number Value", "Credits must have number value!");
         ui->mobCreditsEdit->setText(QString::number(mob->credits));
@@ -2264,7 +2264,7 @@ Room *MainWindow::getCurrentRoom()
     int idx = ui->roomNavigatorComboBox->currentIndex();
     if (idx < 0 || idx >= area_.rooms.size())
         return nullptr;
-    int vnum = ui->roomNavigatorComboBox->currentData().toInt();
+    qint64 vnum = ui->roomNavigatorComboBox->currentData().toLongLong();
     for (int i = 0; i < area_.rooms.size(); ++i) {
         if (area_.rooms[i].vnum == vnum)
             return &area_.rooms[i];
@@ -2593,7 +2593,7 @@ void MainWindow::onRoomTeleVnumComboBoxCurrentIndexChanged(int idx)
     if (!roomCanChange_) return;
     Room *room = getCurrentRoom();
     if (!room) return;
-    room->televnum = ui->roomTeleVnumComboBox->itemData(idx).toInt();
+    room->televnum = ui->roomTeleVnumComboBox->itemData(idx).toLongLong();
     setModified();
 }
 
@@ -2656,7 +2656,7 @@ void MainWindow::onRoomExitAddButtonClicked()
     Room *room = getCurrentRoom();
     if (!room) return;
 
-    NewExitWidget *w = new NewExitWidget(room, config_.exits, &area_, exitsMap_, this);
+    NewExitWidget *w = new NewExitWidget(room, config_.exits, config_.exitGridColumns, &area_, exitsMap_, this);
     connect(w, &NewExitWidget::exitCreated, this, [this]() {
         Room *room = getCurrentRoom();
         if (room) {
@@ -2664,7 +2664,7 @@ void MainWindow::onRoomExitAddButtonClicked()
             setLastExitIndex();
         }
         setModified();
-        statusBar()->showMessage("New exit created.");
+        statusBar()->showMessage("New exit created.", 5000);
     });
         centerChildOnParent(w, this);
 }
@@ -2792,7 +2792,7 @@ void MainWindow::onRoomExitKeyComboBoxCurrentIndexChanged(int idx)
     if (!roomCanChange_) return;
     Exit *exit = getCurrentExit();
     if (!exit) return;
-    exit->key = ui->roomExitKeyComboBox->itemData(idx).toInt();
+    exit->key = ui->roomExitKeyComboBox->itemData(idx).toLongLong();
     setModified();
 }
 
@@ -2940,7 +2940,7 @@ void MainWindow::resetCreateWidgets(AreaReset *reset)
 void MainWindow::resetCreateVnumWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     const ResetArgDef &argDef = getResetArgDef(resDef, argIndex);
-    int curVal = getResetArgValue(*reset, argIndex);
+    qint64 curVal = getResetArgValue(*reset, argIndex);
     bool isOther = argDef.type.endsWith("_other");
     QString baseType = isOther ? argDef.type.left(argDef.type.length() - 6) : argDef.type;
 
@@ -3012,6 +3012,18 @@ void MainWindow::resetCreateVnumWidget(AreaReset *reset, const ResetInfoDef &res
     if (selectedIdx >= 0)
         box->setCurrentIndex(selectedIdx);
 
+    ResetVnumEventFilter *filter = new ResetVnumEventFilter(argIndex, box);
+    box->installEventFilter(filter);
+    connect(filter, &ResetVnumEventFilter::vnumOverridden,
+            this, [this](int argIdx, qint64 vnum) {
+        AreaReset *r = getCurrentReset();
+        if (!r) return;
+        setResetArgValue(r, argIdx, vnum);
+        int resetIdx = ui->resetNavigatorComboBox->currentIndex();
+        fillResetData(resetIdx);
+        setModified();
+    });
+
     connect(box, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MainWindow::resetArgVnumChanged);
 
@@ -3022,13 +3034,13 @@ void MainWindow::resetCreateVnumWidget(AreaReset *reset, const ResetInfoDef &res
 void MainWindow::resetCreateIntWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     Q_UNUSED(resDef);
-    int curVal = getResetArgValue(*reset, argIndex);
+    qint64 curVal = getResetArgValue(*reset, argIndex);
 
     QSpinBox *spin = new QSpinBox();
     spin->setObjectName("resetArg" + QString::number(argIndex));
     spin->setMinimum(-999999);
     spin->setMaximum(999999);
-    spin->setValue(curVal);
+    spin->setValue(static_cast<int>(curVal));
 
     connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &MainWindow::resetArgIntChanged);
@@ -3040,7 +3052,7 @@ void MainWindow::resetCreateIntWidget(AreaReset *reset, const ResetInfoDef &resD
 void MainWindow::resetCreateStringWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     Q_UNUSED(resDef);
-    int curVal = getResetArgValue(*reset, argIndex);
+    qint64 curVal = getResetArgValue(*reset, argIndex);
 
     QLineEdit *edit = new QLineEdit();
     edit->setObjectName("resetArg" + QString::number(argIndex));
@@ -3055,7 +3067,7 @@ void MainWindow::resetCreateStringWidget(AreaReset *reset, const ResetInfoDef &r
 void MainWindow::resetCreateTypeWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     const ResetArgDef &argDef = getResetArgDef(resDef, argIndex);
-    int curVal = getResetArgValue(*reset, argIndex);
+    qint64 curVal = getResetArgValue(*reset, argIndex);
 
     QComboBox *box = new QComboBox();
     box->setObjectName("resetArg" + QString::number(argIndex));
@@ -3063,7 +3075,7 @@ void MainWindow::resetCreateTypeWidget(AreaReset *reset, const ResetInfoDef &res
     for (const ResetArgValueDef &v : argDef.values)
         box->addItem(v.name, v.value.toInt());
 
-    int idx = box->findData(curVal);
+    int idx = box->findData(static_cast<int>(curVal));
     if (idx >= 0) box->setCurrentIndex(idx);
 
     connect(box, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -3076,7 +3088,7 @@ void MainWindow::resetCreateTypeWidget(AreaReset *reset, const ResetInfoDef &res
 void MainWindow::resetCreateFlagsWidget(AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     const ResetArgDef &argDef = getResetArgDef(resDef, argIndex);
-    int curVal = getResetArgValue(*reset, argIndex);
+    qint64 curVal = getResetArgValue(*reset, argIndex);
 
     // Build flag defs from the arg values
     QList<FlagDef> flagDefs;
@@ -3140,7 +3152,7 @@ void MainWindow::updateResetNavigatorText()
         ui->resetNavigatorComboBox->setItemText(idx, prepareResetStr(*reset));
 }
 
-bool MainWindow::resetIsOtherVnum(int vnum, AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
+bool MainWindow::resetIsOtherVnum(qint64 vnum, AreaReset *reset, const ResetInfoDef &resDef, int argIndex)
 {
     const ResetArgDef &currentArgDef = getResetArgDef(resDef, argIndex);
     // For _other types: the base type is the type without _other suffix
@@ -3161,7 +3173,7 @@ bool MainWindow::resetIsOtherVnum(int vnum, AreaReset *reset, const ResetInfoDef
     return true;
 }
 
-void MainWindow::addOtherVnum(QComboBox *box, int vnum)
+void MainWindow::addOtherVnum(QComboBox *box, qint64 vnum)
 {
     if (vnum == 0)
         box->addItem("0 - [none]", QVariant(0));
@@ -3169,7 +3181,7 @@ void MainWindow::addOtherVnum(QComboBox *box, int vnum)
         box->addItem(QString::number(vnum) + " - [from another area]", QVariant(vnum));
 }
 
-int MainWindow::getResetArgValue(const AreaReset &reset, int argIndex)
+qint64 MainWindow::getResetArgValue(const AreaReset &reset, int argIndex)
 {
     switch (argIndex) {
     case 0: return reset.extra;
@@ -3181,7 +3193,7 @@ int MainWindow::getResetArgValue(const AreaReset &reset, int argIndex)
     }
 }
 
-void MainWindow::setResetArgValue(AreaReset *reset, int argIndex, int value)
+void MainWindow::setResetArgValue(AreaReset *reset, int argIndex, qint64 value)
 {
     switch (argIndex) {
     case 0: reset->extra = value; break;
@@ -3257,7 +3269,7 @@ void MainWindow::onResetDeleteButtonClicked()
         clearResetData();
     }
     setModified();
-    statusBar()->showMessage("Reset deleted.");
+    statusBar()->showMessage("Reset deleted.", 5000);
 }
 
 // --- Dynamic reset arg slots ---
@@ -3299,7 +3311,7 @@ void MainWindow::resetArgStringChanged(const QString &str)
 
     if (argIdx >= 0 && argIdx <= 4) {
         bool ok;
-        int val = str.toInt(&ok);
+        qint64 val = str.toLongLong(&ok);
         if (ok) {
             setResetArgValue(reset, argIdx, val);
             updateResetNavigatorText();
@@ -3323,7 +3335,7 @@ void MainWindow::resetArgVnumChanged(int idx)
         argIdx = name.mid(8).toInt();
 
     if (argIdx >= 0 && argIdx <= 4) {
-        int val = box->itemData(idx).toInt();
+        qint64 val = box->itemData(idx).toLongLong();
         setResetArgValue(reset, argIdx, val);
         // Re-fill all reset data so _other combos re-filter, matching Java behavior
         int resetIdx = ui->resetNavigatorComboBox->currentIndex();
@@ -3347,7 +3359,7 @@ void MainWindow::resetArgTypesChanged(int idx)
         argIdx = name.mid(8).toInt();
 
     if (argIdx >= 0 && argIdx <= 4) {
-        int val = box->itemData(idx).toInt();
+        qint64 val = box->itemData(idx).toLongLong();
         setResetArgValue(reset, argIdx, val);
         updateResetNavigatorText();
         setModified();
@@ -3389,7 +3401,7 @@ void MainWindow::resetArgFlagsClicked()
     connect(fw, &FlagsWidget::flagsAccepted, this, [this, argIdx](qint64 value) {
         AreaReset *reset = getCurrentReset();
         if (!reset) return;
-        setResetArgValue(reset, argIdx, static_cast<int>(value));
+        setResetArgValue(reset, argIdx, value);
 
         // Update the line edit
         QLineEdit *edit = findChild<QLineEdit *>("resetArg" + QString::number(argIdx));
@@ -3412,11 +3424,11 @@ Shop *MainWindow::getCurrentShop()
     int idx = ui->shopKeeperBox->currentIndex();
     if (idx < 0 || idx >= ui->shopKeeperBox->count())
         return nullptr;
-    int keeperVnum = ui->shopKeeperBox->currentData().toInt();
+    qint64 keeperVnum = ui->shopKeeperBox->currentData().toLongLong();
     return getShopByKeeperVnum(keeperVnum);
 }
 
-Shop *MainWindow::getShopByKeeperVnum(int keeperVnum)
+Shop *MainWindow::getShopByKeeperVnum(qint64 keeperVnum)
 {
     for (int i = 0; i < area_.shops.size(); ++i) {
         if (area_.shops[i].keeper == keeperVnum)
@@ -3638,13 +3650,15 @@ void MainWindow::onShopDeleteButtonClicked()
 
     area_.shops.removeAt(idx);
 
-    if (!area_.shops.isEmpty())
-        fillShopData(0);
-    else
+    if (!area_.shops.isEmpty()) {
+        int newIdx = (idx > 0) ? idx - 1 : 0;
+        fillShopData(newIdx);
+    } else {
         clearShopData();
+    }
 
     setModified();
-    statusBar()->showMessage("Shop deleted.");
+    statusBar()->showMessage("Shop deleted.", 5000);
 }
 
 // ===========================================================================
@@ -3656,11 +3670,11 @@ Repair *MainWindow::getCurrentRepair()
     int idx = ui->repairKeeperBox->currentIndex();
     if (idx < 0 || idx >= ui->repairKeeperBox->count())
         return nullptr;
-    int keeperVnum = ui->repairKeeperBox->currentData().toInt();
+    qint64 keeperVnum = ui->repairKeeperBox->currentData().toLongLong();
     return getRepairByKeeperVnum(keeperVnum);
 }
 
-Repair *MainWindow::getRepairByKeeperVnum(int keeperVnum)
+Repair *MainWindow::getRepairByKeeperVnum(qint64 keeperVnum)
 {
     for (int i = 0; i < area_.repairs.size(); ++i) {
         if (area_.repairs[i].keeper == keeperVnum)
@@ -3826,13 +3840,15 @@ void MainWindow::onRepairDeleteButtonClicked()
 
     area_.repairs.removeAt(idx);
 
-    if (!area_.repairs.isEmpty())
-        fillRepairData(0);
-    else
+    if (!area_.repairs.isEmpty()) {
+        int newIdx = (idx > 0) ? idx - 1 : 0;
+        fillRepairData(newIdx);
+    } else {
         clearRepairData();
+    }
 
     setModified();
-    statusBar()->showMessage("Repair deleted.");
+    statusBar()->showMessage("Repair deleted.", 5000);
 }
 
 // ===========================================================================
@@ -3851,12 +3867,12 @@ ShortDesc MainWindow::newShortDesc()
     return sd;
 }
 
-int MainWindow::findNextFreeVnum(const QString &entityType)
+qint64 MainWindow::findNextFreeVnum(const QString &entityType)
 {
-    int lvnum = area_.head.vnums.lvnum;
-    int uvnum = area_.head.vnums.uvnum;
+    qint64 lvnum = area_.head.vnums.lvnum;
+    qint64 uvnum = area_.head.vnums.uvnum;
 
-    for (int v = lvnum; v <= uvnum; ++v) {
+    for (qint64 v = lvnum; v <= uvnum; ++v) {
         bool used = false;
 
         if (entityType == "item") {
@@ -3882,7 +3898,7 @@ int MainWindow::findNextFreeVnum(const QString &entityType)
 
 AreaObject MainWindow::newItem()
 {
-    int vnum = findNextFreeVnum("item");
+    qint64 vnum = findNextFreeVnum("item");
     if (vnum < 0) {
         QMessageBox::warning(this, "Warning", "No free vnums available for items!");
         return AreaObject();
@@ -3913,7 +3929,7 @@ AreaObject MainWindow::newItem()
 
 Mobile MainWindow::newMobile()
 {
-    int vnum = findNextFreeVnum("mobile");
+    qint64 vnum = findNextFreeVnum("mobile");
     if (vnum < 0) {
         QMessageBox::warning(this, "Warning", "No free vnums available for mobiles!");
         return Mobile();
@@ -3945,7 +3961,7 @@ Mobile MainWindow::newMobile()
 
 Room MainWindow::newRoom()
 {
-    int vnum = findNextFreeVnum("room");
+    qint64 vnum = findNextFreeVnum("room");
     if (vnum < 0) {
         QMessageBox::warning(this, "Warning", "No free vnums available for rooms!");
         return Room();
@@ -3968,7 +3984,7 @@ Room MainWindow::newRoom()
     return room;
 }
 
-Shop MainWindow::newShop(int keeperVnum)
+Shop MainWindow::newShop(qint64 keeperVnum)
 {
     Shop shop;
     shop.keeper = keeperVnum;
@@ -3985,7 +4001,7 @@ Shop MainWindow::newShop(int keeperVnum)
     return shop;
 }
 
-Repair MainWindow::newRepair(int keeperVnum)
+Repair MainWindow::newRepair(qint64 keeperVnum)
 {
     Repair repair;
     repair.keeper = keeperVnum;
@@ -4034,7 +4050,7 @@ void MainWindow::onActionCreateNewArea()
         currentFileName_.clear();
         fillAll();
         setModified();
-        statusBar()->showMessage("New area created.");
+        statusBar()->showMessage("New area created.", 5000);
         ui->tabWidget->setCurrentIndex(0);
         ui->nameEdit->setFocus();
     });
@@ -4060,7 +4076,7 @@ void MainWindow::onActionCreateNewItem()
     area_.objects.append(obj);
     fillItemData(area_.objects.size() - 1);
     setModified();
-    statusBar()->showMessage("New item created.");
+    statusBar()->showMessage("New item created.", 5000);
 }
 
 void MainWindow::onActionDeleteCurrentItem()
@@ -4083,7 +4099,7 @@ void MainWindow::onActionDeleteCurrentItem()
         clearItemData();
     }
     setModified();
-    statusBar()->showMessage("Item deleted.");
+    statusBar()->showMessage("Item deleted.", 5000);
 }
 
 void MainWindow::onActionCreateNewMobile()
@@ -4096,7 +4112,7 @@ void MainWindow::onActionCreateNewMobile()
     area_.mobiles.append(mob);
     fillMobileData(area_.mobiles.size() - 1);
     setModified();
-    statusBar()->showMessage("New mobile created.");
+    statusBar()->showMessage("New mobile created.", 5000);
 }
 
 void MainWindow::onActionDeleteCurrentMobile()
@@ -4119,7 +4135,7 @@ void MainWindow::onActionDeleteCurrentMobile()
         clearMobileData();
     }
     setModified();
-    statusBar()->showMessage("Mobile deleted.");
+    statusBar()->showMessage("Mobile deleted.", 5000);
 }
 
 void MainWindow::onActionCreateNewRoom()
@@ -4132,7 +4148,7 @@ void MainWindow::onActionCreateNewRoom()
     area_.rooms.append(room);
     fillRoomData(area_.rooms.size() - 1);
     setModified();
-    statusBar()->showMessage("New room created.");
+    statusBar()->showMessage("New room created.", 5000);
 }
 
 void MainWindow::onActionDeleteCurrentRoom()
@@ -4155,7 +4171,7 @@ void MainWindow::onActionDeleteCurrentRoom()
         clearRoomData();
     }
     setModified();
-    statusBar()->showMessage("Room deleted.");
+    statusBar()->showMessage("Room deleted.", 5000);
 }
 
 void MainWindow::onActionShowMap()
@@ -4242,34 +4258,29 @@ void MainWindow::onActionMessages()
 // Callback slots (from child dialogs/widgets)
 // ===========================================================================
 
-void MainWindow::areaCreated()
-{
-    fillAll();
-    setNotModified();
-}
-
 void MainWindow::resetCreated()
 {
     fillResetData(area_.resets.size() - 1);
     setModified();
+    statusBar()->showMessage("New reset created.", 5000);
 }
 
-void MainWindow::shopVnumChosen(int vnum)
+void MainWindow::shopVnumChosen(qint64 vnum)
 {
     Shop shop = newShop(vnum);
     area_.shops.append(shop);
     fillShopData(area_.shops.size() - 1);
     setModified();
-    statusBar()->showMessage("New shop created.");
+    statusBar()->showMessage("New shop created.", 5000);
 }
 
-void MainWindow::repairVnumChosen(int vnum)
+void MainWindow::repairVnumChosen(qint64 vnum)
 {
     Repair repair = newRepair(vnum);
     area_.repairs.append(repair);
     fillRepairData(area_.repairs.size() - 1);
     setModified();
-    statusBar()->showMessage("New repair created.");
+    statusBar()->showMessage("New repair created.", 5000);
 }
 
 void MainWindow::mapClosed()
@@ -4324,7 +4335,7 @@ void MainWindow::sysTrayActivated(QSystemTrayIcon::ActivationReason reason)
 // Map helpers
 // ===========================================================================
 
-void MainWindow::mapRoomVnumSelected(int vnum)
+void MainWindow::mapRoomVnumSelected(qint64 vnum)
 {
     mapSelection_ = true;
     for (int i = 0; i < area_.rooms.size(); ++i) {
@@ -4336,7 +4347,7 @@ void MainWindow::mapRoomVnumSelected(int vnum)
     mapSelection_ = false;
 }
 
-void MainWindow::mapRoomExitSelected(int ownerRoomVnum, int exitDirection, int destRoomVnum)
+void MainWindow::mapRoomExitSelected(qint64 ownerRoomVnum, int exitDirection, qint64 destRoomVnum)
 {
     mapSelection_ = true;
 
@@ -4362,7 +4373,7 @@ void MainWindow::mapRoomExitSelected(int ownerRoomVnum, int exitDirection, int d
 // Renumber (stub)
 // ===========================================================================
 
-void MainWindow::renumber(int newFirstVnum, int optionsFlags)
+void MainWindow::renumber(qint64 newFirstVnum, int optionsFlags)
 {
     Renumberer renumberer(&area_, newFirstVnum, optionsFlags, resetsMap_);
     renumberer.renumber();
@@ -4370,7 +4381,7 @@ void MainWindow::renumber(int newFirstVnum, int optionsFlags)
     fillAll();
     setModified();
     statusBar()->showMessage("Area renumbered to start at vnum " +
-                             QString::number(newFirstVnum) + ".");
+                             QString::number(newFirstVnum) + ".", 5000);
 
     QStringList warnings = renumberer.getWarnings();
     if (!warnings.isEmpty()) {

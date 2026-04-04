@@ -19,6 +19,7 @@ class NewExitWidget : public QWidget {
 public:
     explicit NewExitWidget(Room *room,
                            const QList<ExitDef> &exits,
+                           int gridColumns,
                            Area *area,
                            const QMap<int, ExitDef> &exitsMap,
                            QWidget *parent = nullptr);

@@ -156,9 +156,10 @@ QList<FlagDef> XmlIO::loadFlags(const QString &filePath)
     return result;
 }
 
-QList<ExitDef> XmlIO::loadExits(const QString &filePath)
+QList<ExitDef> XmlIO::loadExits(const QString &filePath, int &gridColumns)
 {
     QList<ExitDef> result;
+    gridColumns = 3; // default
     QFile file;
     QXmlStreamReader xml;
     if (!openXml(filePath, file, xml))
@@ -166,6 +167,11 @@ QList<ExitDef> XmlIO::loadExits(const QString &filePath)
 
     while (!xml.atEnd()) {
         xml.readNext();
+        if (xml.isStartElement() && xml.name() == u"exits") {
+            auto rootAttrs = xml.attributes();
+            if (rootAttrs.hasAttribute(QStringLiteral("gridColumns")))
+                gridColumns = rootAttrs.value(QStringLiteral("gridColumns")).toInt();
+        }
         if (xml.isStartElement() && xml.name() == u"exit") {
             ExitDef e;
             auto attrs = xml.attributes();
@@ -452,7 +458,7 @@ ConfigData XmlIO::loadAllConfig(const QString &dataDir, QStringList *validationE
     c.attackFlags          = loadFlags(dataDir + "/attackflags.xml");
     c.defenseFlags         = loadFlags(dataDir + "/defenseflags.xml");
     c.shopFlags            = loadFlags(dataDir + "/shopflags.xml");
-    c.exits                = loadExits(dataDir + "/exits.xml");
+    c.exits                = loadExits(dataDir + "/exits.xml", c.exitGridColumns);
     c.itemTypes            = loadItemTypes(dataDir + "/itemtypes.xml");
     c.races                = loadNames(dataDir + "/races.xml");
     c.languages            = loadNames(dataDir + "/languages.xml");
@@ -549,8 +555,8 @@ static Head parseHead(QXmlStreamReader &xml)
             while (!(xml.isEndElement() && xml.name() == u"vnums")) {
                 xml.readNext();
                 if (!xml.isStartElement()) continue;
-                if (xml.name() == u"lvnum")      h.vnums.lvnum = readInt(xml);
-                else if (xml.name() == u"uvnum")  h.vnums.uvnum = readInt(xml);
+                if (xml.name() == u"lvnum")      h.vnums.lvnum = readLong(xml);
+                else if (xml.name() == u"uvnum")  h.vnums.uvnum = readLong(xml);
             }
         }
         else if (n == u"flags")   h.flags = readLong(xml);
@@ -558,8 +564,8 @@ static Head parseHead(QXmlStreamReader &xml)
             while (!(xml.isEndElement() && xml.name() == u"economy")) {
                 xml.readNext();
                 if (!xml.isStartElement()) continue;
-                if (xml.name() == u"low")       h.economy.low = readInt(xml);
-                else if (xml.name() == u"high")  h.economy.high = readInt(xml);
+                if (xml.name() == u"low")       h.economy.low = readLong(xml);
+                else if (xml.name() == u"high")  h.economy.high = readLong(xml);
             }
         }
         else if (n == u"reset") {
@@ -683,7 +689,7 @@ static Mobile parseMobile(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         auto n = xml.name();
-        if (n == u"vnum")             m.vnum = readInt(xml);
+        if (n == u"vnum")             m.vnum = readLong(xml);
         else if (n == u"name")        m.name = readText(xml);
         else if (n == u"short")       m.shortDesc = parseShortDesc(xml);
         else if (n == u"long")        m.longDesc = readText(xml);
@@ -694,7 +700,7 @@ static Mobile parseMobile(QXmlStreamReader &xml)
         else if (n == u"affected")    m.affected = readLong(xml);
         else if (n == u"alignment")   m.alignment = readInt(xml);
         else if (n == u"sex")         m.sex = readInt(xml);
-        else if (n == u"credits")     m.credits = readInt(xml);
+        else if (n == u"credits")     m.credits = readLong(xml);
         else if (n == u"position")    m.position = readInt(xml);
         else if (n == u"sectiona")    m.sectiona = parseSectionA(xml);
         else if (n == u"sections")    m.sections = parseSectionS(xml);
@@ -770,7 +776,7 @@ static AreaObject parseObject(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         auto n = xml.name();
-        if (n == u"vnum")              o.vnum = readInt(xml);
+        if (n == u"vnum")              o.vnum = readLong(xml);
         else if (n == u"name")         o.name = readText(xml);
         else if (n == u"short")        o.shortDesc = parseShortDesc(xml);
         else if (n == u"description")  o.description = readText(xml);
@@ -780,9 +786,9 @@ static AreaObject parseObject(QXmlStreamReader &xml)
         else if (n == u"wearflags")    o.wearflags = readLong(xml);
         else if (n == u"layers")       o.layers = readInt(xml);
         else if (n == u"values")       o.values = parseObjectValues(xml);
-        else if (n == u"weight")       o.weight = readInt(xml);
-        else if (n == u"cost")         o.cost = readInt(xml);
-        else if (n == u"gender")       o.gender = readInt(xml);
+        else if (n == u"weight")       o.weight = readLong(xml);
+        else if (n == u"cost")         o.cost = readLong(xml);
+        else if (n == u"gender")       o.gender = readLong(xml);
         else if (n == u"level")        o.level = readInt(xml);
         else if (n == u"extradescs")   o.extradescs = parseExtraDescs(xml);
         else if (n == u"requirements") o.requirements = parseRequirements(xml);
@@ -802,8 +808,8 @@ static Exit parseExit(QXmlStreamReader &xml)
         else if (xml.name() == u"description") e.description = readText(xml);
         else if (xml.name() == u"keyword")    e.keyword = readText(xml);
         else if (xml.name() == u"flags")      e.flags = readLong(xml);
-        else if (xml.name() == u"key")        e.key = readInt(xml);
-        else if (xml.name() == u"vnum")       e.vnum = readInt(xml);
+        else if (xml.name() == u"key")        e.key = readLong(xml);
+        else if (xml.name() == u"vnum")       e.vnum = readLong(xml);
         else if (xml.name() == u"distance")   e.distance = readInt(xml);
     }
     return e;
@@ -816,16 +822,16 @@ static Room parseRoom(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         auto n = xml.name();
-        if (n == u"vnum")              r.vnum = readInt(xml);
+        if (n == u"vnum")              r.vnum = readLong(xml);
         else if (n == u"name")         r.name = readText(xml);
         else if (n == u"description")  r.description = readText(xml);
         else if (n == u"nightdesc")    r.nightdesc = readText(xml);
         else if (n == u"light")        r.light = readInt(xml);
         else if (n == u"flags")        r.flags = readLong(xml);
         else if (n == u"sector")       r.sector = readInt(xml);
-        else if (n == u"teledelay")    r.teledelay = readInt(xml);
-        else if (n == u"televnum")     r.televnum = readInt(xml);
-        else if (n == u"tunnel")       r.tunnel = readInt(xml);
+        else if (n == u"teledelay")    r.teledelay = readLong(xml);
+        else if (n == u"televnum")     r.televnum = readLong(xml);
+        else if (n == u"tunnel")       r.tunnel = readLong(xml);
         else if (n == u"exits") {
             while (!(xml.isEndElement() && xml.name() == u"exits")) {
                 xml.readNext();
@@ -846,11 +852,11 @@ static AreaReset parseAreaReset(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         if (xml.name() == u"command")      r.command = readText(xml);
-        else if (xml.name() == u"extra")   r.extra = readInt(xml);
-        else if (xml.name() == u"arg1")    r.arg1 = readInt(xml);
-        else if (xml.name() == u"arg2")    r.arg2 = readInt(xml);
-        else if (xml.name() == u"arg3")    r.arg3 = readInt(xml);
-        else if (xml.name() == u"arg4")    r.arg4 = readInt(xml);
+        else if (xml.name() == u"extra")   r.extra = readLong(xml);
+        else if (xml.name() == u"arg1")    r.arg1 = readLong(xml);
+        else if (xml.name() == u"arg2")    r.arg2 = readLong(xml);
+        else if (xml.name() == u"arg3")    r.arg3 = readLong(xml);
+        else if (xml.name() == u"arg4")    r.arg4 = readLong(xml);
     }
     return r;
 }
@@ -862,7 +868,7 @@ static Shop parseShop(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         auto n = xml.name();
-        if (n == u"keeper")         s.keeper = readInt(xml);
+        if (n == u"keeper")         s.keeper = readLong(xml);
         else if (n == u"types") {
             while (!(xml.isEndElement() && xml.name() == u"types")) {
                 xml.readNext();
@@ -890,7 +896,7 @@ static Repair parseRepair(QXmlStreamReader &xml)
         xml.readNext();
         if (!xml.isStartElement()) continue;
         auto n = xml.name();
-        if (n == u"keeper")          r.keeper = readInt(xml);
+        if (n == u"keeper")          r.keeper = readLong(xml);
         else if (n == u"types") {
             while (!(xml.isEndElement() && xml.name() == u"types")) {
                 xml.readNext();
@@ -914,7 +920,7 @@ static Special parseSpecial(QXmlStreamReader &xml)
     while (!(xml.isEndElement() && xml.name() == u"special")) {
         xml.readNext();
         if (!xml.isStartElement()) continue;
-        if (xml.name() == u"vnum")           s.vnum = readInt(xml);
+        if (xml.name() == u"vnum")           s.vnum = readLong(xml);
         else if (xml.name() == u"function")  s.function = readText(xml);
         else if (xml.name() == u"function2") s.function2 = readText(xml);
     }
@@ -1064,13 +1070,13 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
         xml.writeTextElement("builders", h.builders);
         writeNum(xml, "security", h.security);
         xml.writeStartElement("vnums");
-        writeNum(xml, "lvnum", h.vnums.lvnum);
-        writeNum(xml, "uvnum", h.vnums.uvnum);
+        writeLong(xml, "lvnum", h.vnums.lvnum);
+        writeLong(xml, "uvnum", h.vnums.uvnum);
         xml.writeEndElement();
         writeLong(xml, "flags", h.flags);
         xml.writeStartElement("economy");
-        writeNum(xml, "low", h.economy.low);
-        writeNum(xml, "high", h.economy.high);
+        writeLong(xml, "low", h.economy.low);
+        writeLong(xml, "high", h.economy.high);
         xml.writeEndElement();
         xml.writeStartElement("reset");
         writeNum(xml, "frequency", h.reset.frequency);
@@ -1087,7 +1093,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("mobiles");
     for (const auto &m : area.mobiles) {
         xml.writeStartElement("mobile");
-        writeNum(xml, "vnum", m.vnum);
+        writeLong(xml, "vnum", m.vnum);
         xml.writeTextElement("name", m.name);
         writeShortDesc(xml, m.shortDesc);
         xml.writeTextElement("long", m.longDesc);
@@ -1098,7 +1104,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
         writeLong(xml, "affected", m.affected);
         writeNum(xml, "alignment", m.alignment);
         writeNum(xml, "sex", m.sex);
-        writeNum(xml, "credits", m.credits);
+        writeLong(xml, "credits", m.credits);
         writeNum(xml, "position", m.position);
         // sectiona
         xml.writeStartElement("sectiona");
@@ -1162,7 +1168,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("objects");
     for (const auto &o : area.objects) {
         xml.writeStartElement("object");
-        writeNum(xml, "vnum", o.vnum);
+        writeLong(xml, "vnum", o.vnum);
         xml.writeTextElement("name", o.name);
         writeShortDesc(xml, o.shortDesc);
         xml.writeTextElement("description", o.description);
@@ -1179,9 +1185,9 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
         xml.writeTextElement("value4", o.values.value4);
         xml.writeTextElement("value5", o.values.value5);
         xml.writeEndElement();
-        writeNum(xml, "weight", o.weight);
-        writeNum(xml, "cost", o.cost);
-        writeNum(xml, "gender", o.gender);
+        writeLong(xml, "weight", o.weight);
+        writeLong(xml, "cost", o.cost);
+        writeLong(xml, "gender", o.gender);
         writeNum(xml, "level", o.level);
         writeExtraDescs(xml, o.extradescs);
         xml.writeStartElement("requirements");
@@ -1210,17 +1216,16 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("rooms");
     for (const auto &r : area.rooms) {
         xml.writeStartElement("room");
-        writeNum(xml, "vnum", r.vnum);
+        writeLong(xml, "vnum", r.vnum);
         xml.writeTextElement("name", r.name);
         xml.writeTextElement("description", r.description);
-        if (!r.nightdesc.isEmpty())
-            xml.writeTextElement("nightdesc", r.nightdesc);
+        xml.writeTextElement("nightdesc", r.nightdesc);
         writeNum(xml, "light", r.light);
         writeLong(xml, "flags", r.flags);
         writeNum(xml, "sector", r.sector);
-        writeNum(xml, "teledelay", r.teledelay);
-        writeNum(xml, "televnum", r.televnum);
-        writeNum(xml, "tunnel", r.tunnel);
+        writeLong(xml, "teledelay", r.teledelay);
+        writeLong(xml, "televnum", r.televnum);
+        writeLong(xml, "tunnel", r.tunnel);
         xml.writeStartElement("exits");
         for (const auto &e : r.exits) {
             xml.writeStartElement("exit");
@@ -1228,8 +1233,8 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
             xml.writeTextElement("description", e.description);
             xml.writeTextElement("keyword", e.keyword);
             writeLong(xml, "flags", e.flags);
-            writeNum(xml, "key", e.key);
-            writeNum(xml, "vnum", e.vnum);
+            writeLong(xml, "key", e.key);
+            writeLong(xml, "vnum", e.vnum);
             writeNum(xml, "distance", e.distance);
             xml.writeEndElement();
         }
@@ -1245,11 +1250,11 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     for (const auto &r : area.resets) {
         xml.writeStartElement("reset");
         xml.writeTextElement("command", r.command);
-        writeNum(xml, "extra", r.extra);
-        writeNum(xml, "arg1", r.arg1);
-        writeNum(xml, "arg2", r.arg2);
-        writeNum(xml, "arg3", r.arg3);
-        writeNum(xml, "arg4", r.arg4);
+        writeLong(xml, "extra", r.extra);
+        writeLong(xml, "arg1", r.arg1);
+        writeLong(xml, "arg2", r.arg2);
+        writeLong(xml, "arg3", r.arg3);
+        writeLong(xml, "arg4", r.arg4);
         xml.writeEndElement();
     }
     xml.writeEndElement(); // resets
@@ -1258,7 +1263,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("shops");
     for (const auto &s : area.shops) {
         xml.writeStartElement("shop");
-        writeNum(xml, "keeper", s.keeper);
+        writeLong(xml, "keeper", s.keeper);
         xml.writeStartElement("types");
         writeNum(xml, "type0", s.types.type0);
         writeNum(xml, "type1", s.types.type1);
@@ -1279,7 +1284,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("repairs");
     for (const auto &r : area.repairs) {
         xml.writeStartElement("repair");
-        writeNum(xml, "keeper", r.keeper);
+        writeLong(xml, "keeper", r.keeper);
         xml.writeStartElement("types");
         writeNum(xml, "type0", r.types.type0);
         writeNum(xml, "type1", r.types.type1);
@@ -1297,7 +1302,7 @@ bool XmlIO::saveArea(const Area &area, const QString &filePath)
     xml.writeStartElement("specials");
     for (const auto &s : area.specials) {
         xml.writeStartElement("special");
-        writeNum(xml, "vnum", s.vnum);
+        writeLong(xml, "vnum", s.vnum);
         xml.writeTextElement("function", s.function);
         xml.writeTextElement("function2", s.function2);
         xml.writeEndElement();

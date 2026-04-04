@@ -22,8 +22,9 @@ BalloonWidget::BalloonWidget(QPoint pos, ColorTheme colorTheme)
     : QWidget(nullptr)
     , pos_(pos)
 {
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::BypassWindowManagerHint);
     setAttribute(Qt::WA_DeleteOnClose);
-    setWindowFlags(Qt::ToolTip);
+    setAttribute(Qt::WA_TranslucentBackground);
 
     QString imgDir = QCoreApplication::applicationDirPath() + "/images/";
 
@@ -73,9 +74,6 @@ BalloonWidget::BalloonWidget(QPoint pos, ColorTheme colorTheme)
     drawBalloon();
 
     resize(w_ + 10, h_ + 10 + ARROW_H);
-    QPalette pal = palette();
-    pal.setColor(QPalette::Window, QColor(0xffffff));
-    setPalette(pal);
 
     // Title label
     titleLabel_ = new QLabel(this);
@@ -84,7 +82,7 @@ BalloonWidget::BalloonWidget(QPoint pos, ColorTheme colorTheme)
     QFont f = titleLabel_->font();
     f.setBold(true);
     titleLabel_->setFont(f);
-    pal = titleLabel_->palette();
+    QPalette pal = titleLabel_->palette();
     pal.setColor(QPalette::WindowText, Qt::white);
     titleLabel_->setPalette(pal);
 
@@ -107,6 +105,7 @@ void BalloonWidget::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter p(this);
+    p.setClipRegion(balloonRegion_);
     p.drawPixmap(0, 0, borderMap_);
     p.fillRect(0, 0, w_ + 1, 20 + top_, QBrush(headerColor_));
     p.drawImage(0, h_ / 2 - iconImage_.height() / 2 + 10 + top_ / 2, iconImage_);
@@ -143,6 +142,7 @@ void BalloonWidget::mouseDoubleClickEvent(QMouseEvent *event)
 
 void BalloonWidget::closeEvent(QCloseEvent *event)
 {
+    lastToolTip_ = nullptr;
     lastToolTipWidget_ = nullptr;
     lastMessage_ = nullptr;
     lastProgress_ = nullptr;
@@ -205,7 +205,7 @@ void BalloonWidget::drawBalloon()
     p.arcTo(r, 270, -90);
     p.lineTo(0, RECT_WH + top_);
 
-    // Balloon mask
+    // Balloon clip region
     QBitmap bitmap(800, 600);
     bitmap.fill(Qt::color0);
     {
@@ -214,14 +214,15 @@ void BalloonWidget::drawBalloon()
         painter.setBrush(Qt::color1);
         painter.drawPath(p);
     }
-    setMask(bitmap);
+    balloonRegion_ = QRegion(bitmap);
 
     // Balloon border
     borderMap_ = QPixmap(800, 600);
+    borderMap_.fill(Qt::transparent);
     {
         QPainter painter(&borderMap_);
         painter.setPen(QPen(headerColor_, 1));
-        painter.setBrush(Qt::color0);
+        painter.setBrush(QBrush(Qt::white));
         painter.drawPath(p);
     }
 }

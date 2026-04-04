@@ -5,6 +5,7 @@
 
 NewExitWidget::NewExitWidget(Room *room,
                              const QList<ExitDef> &exits,
+                             int gridColumns,
                              Area *area,
                              const QMap<int, ExitDef> &exitsMap,
                              QWidget *parent)
@@ -24,8 +25,7 @@ NewExitWidget::NewExitWidget(Room *room,
     QGridLayout *grid = new QGridLayout();
     ui->directionBox->setLayout(grid);
 
-    // Grid columns from exits config (exits.xml gridColumns="3")
-    static const int GRID_COLUMNS = 3;
+    const int GRID_COLUMNS = gridColumns;
     int row = 0;
     int col = 0;
 
@@ -44,7 +44,7 @@ NewExitWidget::NewExitWidget(Room *room,
         btn->setText(exitDef.abbreviation);
         btn->setToolTip(exitDef.name);
         btn->setCheckable(true);
-        btn->setMinimumSize(40, 30);
+        btn->setMinimumSize(25, 25);
 
         // Disable if direction already used (except "somewhere" which can have multiples)
         bool alreadyUsed = roomHasExitInDirection(room_, exitDef.value);
@@ -176,7 +176,7 @@ void NewExitWidget::onAcceptClicked()
     if (selectedDirection_ < 0) return;
     if (ui->destinationVnumBox->currentIndex() < 0) return;
 
-    int destVnum = ui->destinationVnumBox->currentData().toInt();
+    qint64 destVnum = ui->destinationVnumBox->currentData().toLongLong();
 
     // Create the exit
     Exit newExit;
